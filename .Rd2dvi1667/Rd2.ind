@@ -1,0 +1,40 @@
+\begin{theindex}
+
+  \item $*$Topic{\relax \fontsize  {12}{14}\selectfont  \ \textbf  {\nobreakspace  {}keyword}}
+    \subitem \texttt  {givens.rotation}, 2
+    \subitem \texttt  {markby}, 7
+  \item $*$Topic{\relax \fontsize  {12}{14}\selectfont  \ \textbf  {datasets}}
+    \subitem \texttt  {ais}, 1
+  \item $*$Topic{\relax \fontsize  {12}{14}\selectfont  \ \textbf  {graphics}}
+    \subitem \texttt  {rotplot}, 8
+  \item $*$Topic{\relax \fontsize  {12}{14}\selectfont  \ \textbf  {inverse regression, regression}}
+    \subitem \texttt  {ir}, 3
+    \subitem \texttt  {ir.direction}, 5
+    \subitem \texttt  {ir.permutation.test}, 6
+    \subitem \texttt  {ir.x}, 7
+
+  \indexspace
+
+  \item \texttt  {ais}, \textbf{1}
+
+  \indexspace
+
+  \item \texttt  {givens.rotation}, \textbf{2}
+
+  \indexspace
+
+  \item \texttt  {ir}, \textbf{3}, \textit{6}
+  \item \texttt  {ir.direction}, \textbf{5}
+  \item \texttt  {ir.permutation.test}, \textbf{6}
+  \item \texttt  {ir.x}, \textbf{7}
+  \item \texttt  {ir.y} \textit  {(\texttt  {ir.x})}, 7
+
+  \indexspace
+
+  \item \texttt  {markby}, \textbf{7}
+
+  \indexspace
+
+  \item \texttt  {rotplot}, \textbf{8}
+
+\end{theindex}

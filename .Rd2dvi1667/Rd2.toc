@@ -1,0 +1,9 @@
+\contentsline {subsection}{ais}{1}
+\contentsline {subsection}{givens.rotation}{2}
+\contentsline {subsection}{ir}{3}
+\contentsline {subsection}{ir.direction}{5}
+\contentsline {subsection}{ir.permutation.test}{6}
+\contentsline {subsection}{ir.x}{7}
+\contentsline {subsection}{markby}{7}
+\contentsline {subsection}{rotplot}{8}
+\contentsline {chapter}{Index}{10}

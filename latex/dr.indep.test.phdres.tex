@@ -1,0 +1,41 @@
+\Header{dr.indep.test.phdres}{Test of independence for pHd based on residuals}
+\alias{cov.ew.matrix}{dr.indep.test.phdres}
+\begin{Description}\relax
+Compute the p-value for the hypothesis that the central
+subspace for OLS residuals has dimension 0 against the alternative that it
+is greater than zero.  This is an
+internal method not usually needed by the user.\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.indep.test.phdres(object, stat)
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] phdres object 
+\item[\code{stat}] value of the test statistic 
+\end{ldescription}
+\end{Arguments}
+\begin{Author}\relax
+Sanford Weisberg <sandy@stat.umn.edu>\end{Author}
+\begin{References}\relax
+R. D. Cook (1998) Regression Graphics, New York:  Wiley, p. xxx.\end{References}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}\end{SeeAlso}
+\begin{Examples}
+\begin{ExampleCode}
+##---- Should be DIRECTLY executable !! ----
+##-- ==>  Define data, use random,
+##--         or do  help(data=index)  for the standard data sets.
+
+The function is currently defined as
+function(object,stat) {
+  eval <- eigen(cov.ew.matrix(object,scaled=F),only.values=T)
+  pval<-wood.pvalue(.5*eval$values,stat)
+# report results
+    z<-data.frame(cbind(stat,pval))
+    dimnames(z)<-list(c("Test of independence"),c("Stat","p-value"))
+    z}
+\end{ExampleCode}
+\end{Examples}
+

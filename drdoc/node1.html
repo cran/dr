@@ -1,0 +1,502 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.2beta8 (1.43)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Introduction</TITLE>
+<META NAME="description" CONTENT="Introduction">
+<META NAME="keywords" CONTENT="drdoc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.2beta8">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="drdoc.css">
+
+<LINK REL="next" HREF="node2.html">
+<LINK REL="previous" HREF="drdoc.html">
+<LINK REL="up" HREF="drdoc.html">
+<LINK REL="next" HREF="node2.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html34"
+  HREF="node2.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html32"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html26"
+  HREF="drdoc.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html35"
+  HREF="node2.html">Usage</A>
+<B> Up:</B> <A NAME="tex2html33"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html27"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00010000000000000000">
+Introduction</A>
+</H1>
+In the general regression problem, we have a response <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$y$"> of
+dimension <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$"> (usually, <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img12.png"
+ ALT="$k=1$">) and <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$p$">-dimensional predictor <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.png"
+ ALT="$x$">,
+and the goal is to learn about how the conditional distributions
+<IMG
+ WIDTH="53" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img13.png"
+ ALT="$F(y\vert x)$"> as <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.png"
+ ALT="$x$"> varies through its sample space.  In parametric
+regression, we specify a functional form for the conditional
+distributions that is known up to a few parameters.  In
+nonparametric regression, no assumptions are made about <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img14.png"
+ ALT="$F$">, but
+progress is really only possible if the dimensions <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$p$"> and <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$"> are
+small.
+
+<EM>Dimension reduction regression</EM> is one intermediate
+possibility between the parametric and nonparametric extremes.  In
+this setup, we assume without loss of information that the
+conditional distributions can be indexed by <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$"> linear
+combinations, or for some probably unknown <IMG
+ WIDTH="42" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img15.png"
+ ALT="$p\times d$"> matrix <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$B$">
+<BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+F(y|x) = F(y|B'x)
+\end{displaymath}
+ -->
+<A NAME="eq:eq1"></A>
+
+<A NAME="eq:eq1"></A><IMG
+ WIDTH="346" HEIGHT="28" BORDER="0"
+ SRC="img17.png"
+ ALT="\begin{displaymath}
+F(y\vert x) = F(y\vert B'x)
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+This representation always holds trivially, by setting <IMG
+ WIDTH="48" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img18.png"
+ ALT="$B=I$">, the
+<IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$p\times p$"> identity matrix, and so the usual goal is to find the
+<IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$B$"> of lowest possible dimension for which this representation
+holds.  If (<A HREF="node1.html#eq:eq1">1</A>) holds for a particular <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$B$">, then it also
+holds for <IMG
+ WIDTH="72" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.png"
+ ALT="$B^*=BA$">, where <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img21.png"
+ ALT="$A$"> is any full rank matrix, and hence
+the unique part of the regression summary is the subspace that is
+spanned by <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$B$">, which we denote <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$">. Cook (1998) provides a
+more complete introduction to these ideas, including discussion of
+when this subspace, which we call the <EM>central subspace</EM>,
+exists, and when it is unique.
+
+In this paper, we discuss software for estimating the subspace
+<!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$"> spanned by <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$B$">, and tests concerning the dimension <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$">
+based on dimension reduction methods. This software was written
+using , but can also be used with
+<I>Splus</I>.  Most, but not all, of the methods available here are also
+included in the
+<EM>Xlisp-Stat</EM> program
+<EM>Arc</EM>, Cook and
+Weisberg (1999).  The  platform allows use of dimension reduction
+methods with existing statistical methods that are not readily available in
+<EM>Xlisp-Stat</EM>, and hence in <EM>Arc</EM>.  For example, the  code is more suitable for
+Monte Carlo experimentation than <EM>Arc</EM>.  In addition,  includes a much wider
+array of options for smoothing, including multidimensional smoothers.
+On the other hand,
+<EM>Arc</EM> takes full advantage of the dynamic graphical capabilities of <EM>Xlisp-Stat</EM>, and at
+least for now the graphical summaries of dimension reduction regression are
+clearly superior in <EM>Arc</EM>.  Thus, there appears to be good reason to have
+these methods available using both platforms.
+
+Cook (1998) provides the most complete introduction to this area.
+See also Cook and Weisberg (1994) for a more gentle introduction
+to dimension reduction. In this paper we give only the barest
+outline of dimension reduction methodology, concentrating on the
+software.
+
+Suppose we have data <IMG
+ WIDTH="53" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img23.png"
+ ALT="$(x_i,y_i)$">, for <IMG
+ WIDTH="86" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img24.png"
+ ALT="$i=1,\ldots,n$"> that are
+independent and collected into a matrix <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$"> and a vector <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="$Y$"> if
+<IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img12.png"
+ ALT="$k=1$"> and a matrix <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="$Y$"> if <IMG
+ WIDTH="44" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img27.png"
+ ALT="$k&gt;1$">.  In addition, suppose we have
+nonnegative weights <!-- MATH
+ $w_1,\ldots,w_n$
+ -->
+<IMG
+ WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img28.png"
+ ALT="$w_1,\ldots,w_n$"> whose sum is <IMG
+ WIDTH="16" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img29.png"
+ ALT="$n$">;
+ if unspecified, we take all the <IMG
+ WIDTH="52" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.png"
+ ALT="$w_i=1$">.  Generally following Yin
+(2000), a procedure for estimating <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$"> and for obtaining
+tests concerning <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$"> is:
+
+<OL>
+<LI>Scale and center <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$"> as
+    <BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+Z =
+    W^{1/2}(X - 1\bar{x}') \hat{\Sigma}^{-1/2}
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="370" HEIGHT="28" BORDER="0"
+ SRC="img31.png"
+ ALT="\begin{displaymath}
+Z =
+W^{1/2}(X - 1\bar{x}') \hat{\Sigma}^{-1/2}
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+where <!-- MATH
+ $\bar{x} = \sum w_ix_i/\sum w_i$
+ -->
+<IMG
+ WIDTH="134" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img32.png"
+ ALT="$\bar{x} = \sum w_ix_i/\sum w_i$"> is the vector of weighted column
+    means, <!-- MATH
+ $W = \mathrm{diag}(w_i)$
+ -->
+<IMG
+ WIDTH="103" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img33.png"
+ ALT="$W = \mathrm{diag}(w_i)$">, and
+    <BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\hat{\Sigma} = \frac{1}{n -1} (X - 1\bar{x}')'W(X - 1\bar{x}')
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="396" HEIGHT="40" BORDER="0"
+ SRC="img34.png"
+ ALT="\begin{displaymath}
+\hat{\Sigma} = \frac{1}{n -1} (X - 1\bar{x}')'W(X - 1\bar{x}')
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+    <!-- MATH
+ $\hat{\Sigma}^{-1/2}$
+ -->
+<IMG
+ WIDTH="48" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img35.png"
+ ALT="$\hat{\Sigma}^{-1/2}$"> is any square root of the inverse of the
+    sample covariance matrix for <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$"> (for example, using a singular
+    value decomposition) and <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img36.png"
+ ALT="$\bar{x}$"> is a vector of weighted
+    sample means.  In this
+    scaling, the rows of <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img37.png"
+ ALT="$Z$"> have zero mean and identity sample covariance
+    matrix.
+</LI>
+<LI>Use the scaled and centered data <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img37.png"
+ ALT="$Z$"> to find a
+    dimension <IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$p\times p$"> symmetric
+    matrix <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$"> that is a consistent
+    estimate of a population matrix <IMG
+ WIDTH="23" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img39.png"
+ ALT="$M$"> with the property that <!-- MATH
+ ${\mathcal S}(M)
+    \subseteq {\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="104" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img40.png"
+ ALT="${\mathcal S}(M)
+\subseteq {\mathcal S}(B)$">.  For most procedures, all we can guarantee is
+    that <IMG
+ WIDTH="23" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img39.png"
+ ALT="$M$"> tells us about a part, but not necessarily all, of
+    <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$">.  Each of the methods (for example, <I>sir</I>, <I>save</I>, and
+    <I>phd</I>) have a different method for selecting <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">.
+</LI>
+<LI>Let <!-- MATH
+ $|\hat{\lambda}_1|\geq \ldots \geq |\hat{\lambda}_p|$
+ -->
+<IMG
+ WIDTH="118" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img41.png"
+ ALT="$\vert\hat{\lambda}_1\vert\geq \ldots \geq \vert\hat{\lambda}_p\vert$"> be the
+    ordered absolute eigenvalues
+    of <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">, and <!-- MATH
+ $\hat{u}_1,\ldots,\hat{u}_p$
+ -->
+<IMG
+ WIDTH="74" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img42.png"
+ ALT="$\hat{u}_1,\ldots,\hat{u}_p$"> the
+    corresponding eigenvectors of <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">.
+    In some applications (like <I>phd</I>) the eigenvalues may be negative.
+</LI>
+<LI>A Test that the dimension <IMG
+ WIDTH="51" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img43.png"
+ ALT="$d=d_0$"> against the alternative that <IMG
+ WIDTH="51" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img44.png"
+ ALT="$d &gt;
+d_0$"> is based on a partial sum of eigenvalues of the form:
+    <BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\Lambda_{d_0} = n \hat{c} \sum_{j=d_0+1}^p |\hat{\lambda}_j|^{\nu}
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="353" HEIGHT="56" BORDER="0"
+ SRC="img45.png"
+ ALT="\begin{displaymath}
+\Lambda_{d_0} = n \hat{c} \sum_{j=d_0+1}^p \vert\hat{\lambda}_j\vert^{\nu}
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+where <IMG
+ WIDTH="13" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img46.png"
+ ALT="$\hat{c}$"> is a method-specific term, and <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img47.png"
+ ALT="$\nu$"> is generally
+    equal to 1, but it is equal to 2 for <I>phd</I>.
+    The distribution of these partial sums depends on assumptions and on
+    the method of obtaining <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">.
+</LI>
+<LI>Given <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$">, the estimate of <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$"> is the span of the first
+    <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$"> eigenvectors.  When viewed as a subspace of <IMG
+ WIDTH="26" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img48.png"
+ ALT="$\Re^n$">, the basis
+    for this estimated subspace is
+    <!-- MATH
+ $Z\hat{u}_1,\ldots,Z\hat{u}_d$
+ -->
+<IMG
+ WIDTH="98" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img49.png"
+ ALT="$Z\hat{u}_1,\ldots,Z\hat{u}_d$">.  These
+    directions can then be back-transformed to the <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$">-scale.  Given the
+    estimate of <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$">, graphical methods can be used to recover
+    information about <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img14.png"
+ ALT="$F$">, or about particular aspects of the conditional
+    distributions, such as the conditional mean function.
+</LI>
+</OL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html34"
+  HREF="node2.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html32"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html26"
+  HREF="drdoc.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html35"
+  HREF="node2.html">Usage</A>
+<B> Up:</B> <A NAME="tex2html33"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html27"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Sandy Weisberg
+2002-01-10
+</ADDRESS>
+</BODY>
+</HTML>

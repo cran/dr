@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.2beta8 (1.43)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Weights</TITLE>
+<META NAME="description" CONTENT="Weights">
+<META NAME="keywords" CONTENT="drdoc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.2beta8">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="drdoc.css">
+
+<LINK REL="next" HREF="node13.html">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="drdoc.html">
+<LINK REL="next" HREF="node13.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html148"
+  HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html146"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html140"
+  HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html149"
+  HREF="node13.html">Miscellaneous functions included in</A>
+<B> Up:</B> <A NAME="tex2html147"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html141"
+  HREF="node11.html">Graphical methods</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00060000000000000000">
+Weights</A>
+</H1>
+Weights are generally used in dimension reduction methods to make the resulting
+weighted sample closer to a normal distribution than the original sample.
+Cook (1998, Section 8.4) discusses the method that is implemented here.
+When weights are present, they are used in centering the data and computing
+the covariance matrix, and they are used in computing the objective matrix
+<IMG
+ WIDTH="23" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img39.png"
+ ALT="$M$"> for <I>phd</I>.
+Weights may be provided by the user with the <FONT SIZE="-1"><TT>weights</TT></FONT>
+argument.  If
+<FONT SIZE="-1"><TT>weights=NULL</TT></FONT>, the default, no weighting is used.
+
+The function <FONT SIZE="-1"><TT>dr.weights</TT></FONT> is used to estimate weights using the
+algorithm described by Cook (1998, Sec. 8.4).  There are several
+other arguments that control how the weights are computed, as
+described below, and on the help page for the function
+<FONT SIZE="-1"><TT>dr.weights</TT></FONT>.  The algorithm works as follows:
+
+<OL>
+<LI>For an <IMG
+ WIDTH="43" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img85.png"
+ ALT="$n \times p$"> data matrix <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$">, find estimates <IMG
+ WIDTH="20" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img87.png"
+ ALT="$m$"> and <IMG
+ WIDTH="17" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img88.png"
+ ALT="$S$">
+    of the mean and covariance matrix.  For this purpose, in  the function
+    <FONT SIZE="-1"><TT>cov.rob</TT></FONT> in the <FONT SIZE="-1"><TT>lqs</TT></FONT> package is used, while in <I>Splus</I> the
+    function <FONT SIZE="-1"><TT>covRob</TT></FONT> in the <FONT SIZE="-1"><TT>robust</TT></FONT> package is used; in either
+    case the needed package will be loaded automatically.
+    If you do not want to use one of these routines, you must rewrite the
+    function
+    <FONT SIZE="-1"><TT>robust.center.scale</TT></FONT> to use your preferred code.
+    In , the method of computing <IMG
+ WIDTH="20" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img87.png"
+ ALT="$m$"> and <IMG
+ WIDTH="17" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img88.png"
+ ALT="$S$"> is determined
+    by the argument <FONT SIZE="-1"><TT>covmethod</TT></FONT>.  If <FONT SIZE="-1"><TT>covmethod="classical"</TT></FONT>, the
+    usual estimator is used for <IMG
+ WIDTH="17" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img88.png"
+ ALT="$S$">, but <IMG
+ WIDTH="20" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img87.png"
+ ALT="$m$"> is estimated by medians.  If
+    <FONT SIZE="-1"><TT>method="mve"</TT></FONT>, the default, or <FONT SIZE="-1"><TT>method="mcd"</TT></FONT>, the
+    covariance matrix is estimated by the minimum volume ellipsoid method
+    and the minimum determinant method, respectively.  These latter two also
+    return a robust estimate of center.  Any tuning parameters for
+    the method to compute the robust estimate of <IMG
+ WIDTH="20" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img87.png"
+ ALT="$m$"> and <IMG
+ WIDTH="17" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img88.png"
+ ALT="$S$">
+    can be passed from the call to <TT>dr</TT>.
+    See the documentation for
+    <FONT SIZE="-1"><TT>cov.rob</TT></FONT> for a description of these additional parameters.  All
+    the defaults are sensible, so most users will not need to use these
+    additional parameters.
+</LI>
+<LI>Compute the matrix <!-- MATH
+ $Z = (X - 1m')S^{-1/2}$
+ -->
+<IMG
+ WIDTH="153" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img89.png"
+ ALT="$Z = (X - 1m')S^{-1/2}$">.  If the data were
+   normally distributed <IMG
+ WIDTH="62" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img90.png"
+ ALT="$\mbox{N}(m,S)$">, the rows of <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img37.png"
+ ALT="$Z$"> would be like a
+   sample from <IMG
+ WIDTH="54" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img91.png"
+ ALT="$\mbox{N}(0,I)$">.
+</LI>
+<LI>Obtain a random vector <IMG
+ WIDTH="13" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img92.png"
+ ALT="$b$"> from the <!-- MATH
+ $\mbox{N}(0,\sigma^2I)$
+ -->
+<IMG
+ WIDTH="70" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img93.png"
+ ALT="$\mbox{N}(0,\sigma^2I)$"> distribution.
+   The parameter <FONT SIZE="-1"><TT>sigma=1</TT></FONT> is a tuning parameter that can be set in
+   the call to <TT>dr</TT>, and values near 1 or slightly smaller seem
+   appropriate.  Find the row of <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img37.png"
+ ALT="$Z$"> that is closest to <IMG
+ WIDTH="13" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img92.png"
+ ALT="$b$"> (the code uses
+   Euclidean distance), and increase a counter for that row by 1.
+</LI>
+<LI>The argument <FONT SIZE="-1"><TT>nsamples</TT></FONT> determines the number of times this
+   last step is repeated; the default is
+   <FONT SIZE="-1"><TT>nsamples=10*dim(x)[1]</TT></FONT>
+   where <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$"> is the <IMG
+ WIDTH="43" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img85.png"
+ ALT="$n \times p$"> data matrix; this number may be too small.
+</LI>
+<LI>Return a vector of weights given by the value of the counter
+   divided by <FONT SIZE="-1"><TT>nsamples</TT></FONT> and multiplied by <IMG
+ WIDTH="16" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img29.png"
+ ALT="$n$">, so the sum of the
+   weights will be <IMG
+ WIDTH="16" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img29.png"
+ ALT="$n$">.
+   
+</LI>
+</OL>
+
+An example of the use of weights is:
+<PRE>
+&gt; wts &lt;- dr.weights(LBM~Ht+Wt+RCC+WCC)
+&gt; i1 &lt;- dr(LBM~Ht+Wt+RCC+WCC,weights=wts,method="phdres")
+</PRE><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html148"
+  HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html146"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html140"
+  HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html149"
+  HREF="node13.html">Miscellaneous functions included in</A>
+<B> Up:</B> <A NAME="tex2html147"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html141"
+  HREF="node11.html">Graphical methods</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Sandy Weisberg
+2002-01-10
+</ADDRESS>
+</BODY>
+</HTML>

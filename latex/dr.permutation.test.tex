@@ -1,0 +1,39 @@
+\Header{dr.permutation.test}{Inverse Regression Permutation Tests}
+\keyword{inverse regression, regression}{dr.permutation.test}
+\begin{Description}\relax
+This function computes a permutation test for dimension for any inverse 
+regression fitting method.\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.permutation.test(object, npermute=50, numdir=object$numdir)
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] an inverse regression object created by dr
+\item[\code{npermute}] number of permutations to compute, default is 50
+\item[\code{numdir}] maximum permitted value of the dimension, with the default from
+the object
+\end{ldescription}
+\end{Arguments}
+\begin{Value}
+Returns an object of type 'dr.permutation.test' that can be printed or
+summarized to give the summary of the test.\end{Value}
+\begin{Author}\relax
+Sanford Weisberg, sandy@stat.umn.edu\end{Author}
+\begin{References}\relax
+See www.stat.umn.edu/arc/addons.html, and then select the article
+on inverse regression.\end{References}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}\end{SeeAlso}
+\begin{Examples}
+\begin{ExampleCode}
+data(ais)
+attach(ais)  # the Australian athletes data
+#fit inverse regression using sir
+m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+summary(m1)
+dr.permutation.test(m1,npermute=100)
+\end{ExampleCode}
+\end{Examples}
+

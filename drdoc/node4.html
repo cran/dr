@@ -1,0 +1,332 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.2beta8 (1.43)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Sliced inverse regression</TITLE>
+<META NAME="description" CONTENT="Sliced inverse regression">
+<META NAME="keywords" CONTENT="drdoc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.2beta8">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="drdoc.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html70"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html68"
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html62"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html71"
+  HREF="node5.html">Sliced average variance estimation</A>
+<B> Up:</B> <A NAME="tex2html69"
+  HREF="node3.html">Methods available</A>
+<B> Previous:</B> <A NAME="tex2html63"
+  HREF="node3.html">Methods available</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00031000000000000000"></A><A NAME="sec:sir"></A>
+<BR>
+Sliced inverse regression
+</H2>
+Sliced inverse regression, or <I>sir</I>, was proposed by Li (1991); see Cook
+(1998, Chapter 11).  In <I>sir</I>, we
+make use of the fact that given certain assumptions on the marginal
+distribution of <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$"><A NAME="tex2html1"
+  HREF="footnode.html#foot151"><SUP>1</SUP></A>, the inverse regression problem <!-- MATH
+ $F(z|y) \subseteq
+{\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="109" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img56.png"
+ ALT="$F(z\vert y) \subseteq
+{\mathcal S}(B)$">.  The general computational outline for <I>sir</I> is as follows:
+
+<OL>
+<LI>Examine <IMG
+ WIDTH="52" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img57.png"
+ ALT="$F(z\vert y)$"> by dividing the range of <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="$Y$"> into <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img58.png"
+ ALT="$h$"> slices,
+    each with approximately the same number of observations.  With a
+    multivariate response (<IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="$Y$"> has <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$"> columns), divide the range of
+    <!-- MATH
+ $Y_1 \times Y_2 \ldots \times Y_k$
+ -->
+<IMG
+ WIDTH="116" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img59.png"
+ ALT="$Y_1 \times Y_2 \ldots \times Y_k$"> into <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img58.png"
+ ALT="$h$"> cells.  For example,
+    when
+    <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img60.png"
+ ALT="$k = 3$">, and we slice <IMG
+ WIDTH="23" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img61.png"
+ ALT="$Y_1$"> into 3 slices, <IMG
+ WIDTH="23" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img62.png"
+ ALT="$Y_2$"> into 2 slices, and
+    <IMG
+ WIDTH="23" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img63.png"
+ ALT="$Y_3$"> into 4 slices, we will have <!-- MATH
+ $h=2\times3\times4=24$
+ -->
+<IMG
+ WIDTH="136" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img64.png"
+ ALT="$h=2\times3\times4=24$"> cells.
+    The number
+    of slices or cells <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img58.png"
+ ALT="$h$"> is a tuning parameter of the procedure.
+</LI>
+<LI>Assume that within each slice or cell <IMG
+ WIDTH="52" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img57.png"
+ ALT="$F(z\vert y)$"> is approximately
+    constant.  Then the expected value of the within-slice vector of
+    sample means will be a vector in <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$">.
+</LI>
+<LI>Form the <IMG
+ WIDTH="43" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img65.png"
+ ALT="$h \times p$"> matrix whose <IMG
+ WIDTH="12" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img66.png"
+ ALT="$i$">-th row is
+    the vector of weighted sample means in the <IMG
+ WIDTH="12" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img66.png"
+ ALT="$i$">-th slice.
+    The matrix <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">
+    is the <IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$p\times p$"> sample covariance matrix of these sample mean
+    vectors.
+</LI>
+</OL>
+<I>sir</I> thus concentrates on the mean function <IMG
+ WIDTH="59" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img67.png"
+ ALT="$\mbox{E}(Z\vert Y)$">, and ignores any
+other dependence.
+
+The output given in the last section is an example of typical output for
+<I>sir</I>.  First is given the eigenvectors and eigenvalues of <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">; the
+eigenvectors have been back-transformed to the original <IMG
+ WIDTH="21" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="$X$">-scale.
+Assuming that the dimension is <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$">, the estimate of <!-- MATH
+ ${\mathcal S}(B)$
+ -->
+<IMG
+ WIDTH="42" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="${\mathcal S}(B)$"> is given by
+the first <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$"> eigenvectors.  Also given along with the eigenvectors is the
+square of the correlation between the ols fitted values and the first <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$">
+principal directions.  The first direction selected by <I>sir</I> is almost
+always about the same as the first direction selected by ols, as is the case
+in the example above.
+
+For <I>sir</I>, Li (1991) provided asymptotic tests of dimension based on partial
+sums of eigenvalues, and these tests are given in the summary.  The tests
+have asymptotic Chi-square distributions, with the number of degrees of
+freedom shown in the output.
+
+Examining the tests shown in the final output, we see that the
+test of <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$d=0$"> versus <IMG
+ WIDTH="44" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img69.png"
+ ALT="$d&gt;0$"> has a very small <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$p$">-value, so we would
+reject <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$d=0$">.  The test for <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="$d=1$"> versus <IMG
+ WIDTH="44" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img70.png"
+ ALT="$d&gt;1$"> has <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$p$">-value near
+<IMG
+ WIDTH="42" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img71.png"
+ ALT="$0.001$">, suggesting that <IMG
+ WIDTH="14" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$d$"> is at least 2.  The test for <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img8.png"
+ ALT="$d=2$">
+versus <IMG
+ WIDTH="44" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img72.png"
+ ALT="$d&gt;2$"> has <IMG
+ WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$p$">-value of about <IMG
+ WIDTH="34" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img73.png"
+ ALT="$0.31$">, so we suspect that
+<IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img8.png"
+ ALT="$d=2$"> for this problem.  This suggests that further analysis of
+this regression problem can be done based on the 3D graph of the
+response versus the linear combinations of the predictors
+determined by the first two eigenvectors, and the dimension of the
+problem can be reduced from 4 to 2 without loss of information.
+See Cook (1998), and Cook and Weisberg (1994, 1999), for further
+examples and interpretation.
+
+When the response is multivariate, the format of the call is:
+<PRE>
+m1 &lt;- dr(cbind(LBM,RCC)~Ht+Wt+WCC))
+</PRE><FONT SIZE="-1">
+</FONT>
+The summary for a multivariate response is similar:
+<PRE>
+&gt; summary(m1)
+
+Call:
+dr(formula = cbind(LBM, RCC) ~ Ht + Wt + WCC)
+
+Terms:
+cbind(LBM, RCC) ~ Ht + Wt + WCC
+
+Method:
+sir with 9 slices, n = 202, using weights.
+
+Slice Sizes:
+24 23 23 23 22 21 22 22 22
+
+Eigenvectors:
+      Dir1    Dir2    Dir3
+Ht  0.4857  0.3879  0.1946
+Wt  0.8171 -0.2238 -0.1449
+WCC 0.3105 -0.8941  0.9701
+
+              Dir1    Dir2    Dir3
+Eigenvalues 0.7076 0.05105 0.02168
+R^2(LBM|dr) 0.9911 0.99124 1.00000
+R^2(RCC|dr) 0.9670 0.97957 1.00000
+
+Asymp. Chi-square tests for dimension:
+              Stat df p-value
+0D vs &gt;= 1D 157.63 24  0.0000
+1D vs &gt;= 2D  14.69 14  0.3995
+2D vs &gt;= 3D   4.38  6  0.6254
+</PRE><FONT SIZE="-1">
+</FONT>
+The test statistics are the same as in the univariate response case, as is
+the interpretation of the eigenvalues and vectors.  The output gives the
+squared correlation of each of the responses with the eigenvectors.
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html70"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html68"
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html62"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html71"
+  HREF="node5.html">Sliced average variance estimation</A>
+<B> Up:</B> <A NAME="tex2html69"
+  HREF="node3.html">Methods available</A>
+<B> Previous:</B> <A NAME="tex2html63"
+  HREF="node3.html">Methods available</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Sandy Weisberg
+2002-01-10
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,921 @@
+\documentclass{article}
+\usepackage[ae]{Rd}
+\usepackage{html}
+%\usepackage{times}
+\newcommand{\Splus}{{\normalfont\textsf{Splus}}{}}
+\newcommand{\arc}{{\em Arc}}
+\newcommand{\xls}{{\em Xlisp-Stat}}
+\newcommand{\dcode}[1]{{\small{\tt #1}}}
+\newcommand{\ir}{{\tt dr}}
+\newcommand{\dr}{{\tt dr}}
+\newcommand{\sir}{{\sffamily sir}}
+\newcommand{\save}{{\sffamily save}}
+\newcommand{\phd}{{\sffamily phd}}
+\newcommand{\phdy}{{\sffamily phdy}}
+\newcommand{\phdq}{{\sffamily phdq}}
+\newcommand{\phdres}{{\sffamily phdres}}
+\renewcommand{\span}{{\mathcal S}}
+\newcommand{\E}{\mbox{E}}
+\newcommand{\N}{\mbox{N}}
+\newcommand{\indep}{\;\, \rule[0em]{.03em}{.6em} \hspace{-.25em}
+    \rule[0em]{.65em}{.03em} \hspace{-.25em} \rule[0em]{.03em}{.6em}\;\,}
+
+\newenvironment{references}{%
+  \section{References}%
+    \begin{list}%
+            {}%
+            {\setlength{\leftmargin}{.25in}\setlength{\itemindent}{-.25in}}}%
+   {\end{list}}
+
+\newcommand{\jasa} {{\it Journal of the American Statistical Association}}
+\newcommand{\jrssa}{{\it Journal of the Royal Statistical Society, Series A}}
+\newcommand{\jrssb}{{\it Journal of the Royal Statistical Society, Series B}}
+\newcommand{\jrssc}{{\it Applied Statistics}}
+\newcommand{\techx}{{\it Technometrics}}
+\newcommand{\Wiley}{New York: Wiley}
+
+
+\title{Dimension Reduction Regression in \R}
+\author{Sanford Weisberg\thanks{
+{\em Journal of Statistical Software}, 2002, Volume 7, available from
+http://www.jstatsoft.org}\\
+{\small \sl
+School of Statistics, University of Minnesota, St. Paul,
+MN 55108-6042.}\\
+{\small Supported by National Science Foundation Grant DUE 0109756.}}
+\date{\today}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Regression is the study of the dependence of a response variable
+$y$ on a collection $p$ predictors collected in $x$. In {\em
+dimension reduction regression}, we seek to find a few linear
+combinations $\beta_1'x,\ldots,\beta_d'x$, such that all the
+information about the regression is contained in these $d$ linear
+combinations.  If $d$ is very small, perhaps one or two, then the
+regression problem can be summarized using simple graphics; for
+example, for $d=1$, the plot of $y$ versus $\beta_1'x$ contains
+all the regression information.  When $d=2$, a 3D plot contains
+all the information.
+
+Several methods for estimating $d$ and relevant functions of
+$\beta_1\ldots,\beta_d$ have been suggested in the literature.  In
+this paper, we describe an
+\R\ package for three important dimension reduction methods:
+sliced inverse regression or
+\sir, sliced average variance estimates, or \save, and principal
+Hessian directions, or \phd.  The package is very general and
+flexible, and can be easily extended to include other methods of
+dimension reduction.  It includes tests and estimates of the
+dimension $d$, estimates of the relevant information including
+$\beta_1,\ldots,\beta_d$, and some useful graphical summaries as
+well.
+\end{abstract}
+
+\section{Introduction}
+In the general regression problem, we have a response $y$ of
+dimension $k$ (usually, $k=1$) and $p$-dimensional predictor $x$,
+and the goal is to learn about how the conditional distributions
+$F(y|x)$ as $x$ varies through its sample space.  In parametric
+regression, we specify a functional form for the conditional
+distributions that is known up to a few parameters.  In
+nonparametric regression, no assumptions are made about $F$, but
+progress is really only possible if the dimensions $p$ and $k$ are
+small.
+
+{\em Dimension reduction regression} is one intermediate
+possibility between the parametric and nonparametric extremes.  In
+this setup, we assume without loss of information that the
+conditional distributions can be indexed by $d$ linear
+combinations, or for some probably unknown $p\times d$ matrix $B$
+\begin{equation}
+F(y|x) = f(y|B'x)
+\label{eq:eq1}
+\end{equation}
+or in words, all the information in $x$ about $y$ is contained in
+the $d$ linear combinations $B'x$.
+This representation always holds trivially, by setting $B=I$, the
+$p\times p$ identity matrix, and so the usual goal is to find the
+$B$ of lowest possible dimension for which this representation
+holds.  If (\ref{eq:eq1}) holds for a particular $B$, then it also
+holds for $B^*=BA$, where $A$ is any full rank matrix, and hence
+the unique part of the regression summary is the subspace that is
+spanned by $B$, which we denote $\span(B)$. Cook (1998) provides a
+more complete introduction to these ideas, including discussion of
+when this subspace, which we call the {\em central subspace},
+exists, and when it is unique.
+
+In this paper, we discuss software for estimating the subspace
+$\span(B)$ spanned by $B$, and tests concerning the dimension $d$
+based on dimension reduction methods. This software was written
+using \R, but can also be used with
+\Splus.  Most, but not all, of the methods available here are also
+included in the
+\xls\ program
+\arc, Cook and
+Weisberg (1999).  The \R\ platform allows use of dimension reduction
+methods with existing statistical methods that are not readily available in
+\xls, and hence in \arc.  For example, the \R\ functions are more suitable for
+Monte Carlo experimentation than \arc.  In addition, \R\ includes a much wider
+array of options for smoothing, including multidimensional smoothers.
+On the other hand,
+\arc\ takes full advantage of the dynamic graphical capabilities of \xls, and at
+least for now the graphical summaries of dimension reduction regression are
+clearly superior in \arc.  Thus, there appears to be good reason to have
+these methods available using both platforms.
+
+Cook (1998) provides the most complete introduction to this area, and we
+leave the details of all the methods described here to that book.
+See also Cook and Weisberg (1994) for a more gentle introduction
+to dimension reduction. In this paper we give only the barest
+outline of dimension reduction methodology, concentrating on the
+software.
+
+
+Suppose we have data $(x_i,y_i)$, for $i=1,\ldots,n$ that are
+independent and collected into a matrix $X$ and a vector $Y$ if
+$k=1$ and a matrix $Y$ if $k>1$.  In addition, suppose we have
+nonnegative weights $w_1,\ldots,w_n$ whose sum is $n$;
+ if unspecified, we take all the $w_i=1$.  Generally following Yin
+(2000), a procedure for estimating $\span(B)$ and for obtaining
+tests concerning $d$ is:
+\begin{enumerate}
+    \item Scale and center $X$ as
+    \[
+    Z =
+    W^{1/2}(X - 1\bar{x}') \hat{\Sigma}^{-1/2}
+    \]
+    where $\bar{x} = \sum w_ix_i/\sum w_i$ is the vector of weighted column
+    means, $W = \mathrm{diag}(w_i)$, and
+    \[
+    \hat{\Sigma} = \frac{1}{n -1} (X - 1\bar{x}')'W(X - 1\bar{x}')
+    \]
+    $\hat{\Sigma}^{-1/2}$ is any square root of the inverse of the
+    sample covariance matrix for $X$ (for example, using a singular
+    value decomposition) and $\bar{x}$ is a vector of weighted
+    sample means.  In this
+    scaling, the rows of $Z$ have zero mean and identity sample covariance
+    matrix.
+    \item
+    Use the scaled and centered data $Z$ to find a
+    dimension $p \times p$ symmetric
+    matrix $\hat{M}$ that is a consistent
+    estimate of a population matrix $M$ with the property that $\span(M)
+    \subseteq \span(B)$.  For most procedures, all we can guarantee is
+    that $M$ tells us about a part, but not necessarily all, of
+    $\span(B)$.  Each of the methods (for example, \sir, \save, and
+    \phd) have a different method for selecting $\hat{M}$.
+    \item
+    Let $|\hat{\lambda}_1|\geq \ldots \geq |\hat{\lambda}_p|$ be the
+    ordered absolute eigenvalues
+    of $\hat{M}$, and $\hat{u}_1,\ldots,\hat{u}_p$  the
+    corresponding eigenvectors of $\hat{M}$.
+    In some applications (like \phd) the eigenvalues may be negative.
+    \item
+    A test that the dimension $d=d_0$  against the alternative that $d >
+    d_0$ is based on a partial sum of eigenvalues of the form:
+    \[
+    \Lambda_{d_0} = n \hat{c} \sum_{j=d_0+1}^p |\hat{\lambda}_j|^{\nu}
+    \]
+    where $\hat{c}$ is a method-specific term, and $\nu$ is generally
+    equal to 1, but it is equal to 2 for \phd.
+    The distribution of these partial sums depends on assumptions and on
+    the method of obtaining $\hat{M}$.
+    \item
+    Given $d$, the estimate of $\span(B)$ is the span of the first
+    $d$ eigenvectors.  When viewed as a subspace of $\Re^n$, the basis
+    for this estimated subspace is
+    $Z\hat{u}_1,\ldots,Z\hat{u}_d$.  These
+    directions can then be back-transformed to the $X$-scale.  Given the
+    estimate of $\span(B)$, graphical methods can be used to recover
+    information about $F$, or about particular aspects of the conditional
+    distributions, such as the conditional mean function.
+\end{enumerate}
+
+\section{Usage}
+The \R\ package for dimension reduction called \dr\ can be
+obtained from the Comprehensive R Archive Network, CRAN, at
+\verb+http://www.R-project.org+.
+The primary function in this package is called \ir.  Its usage is
+modeled after the \R\ function \dcode{lm} that is used for fitting
+linear models, and so many of the arguments that can be used in
+\dcode{lm} can also be used in \ir.  The following statements will
+examine dimension reduction using \sir\ applied to the Australian
+Institute of Sport data:
+\small
+\begin{verbatim}
+> library(dr)
+> data(ais)
+> attach(ais)
+> i1 <- dr(LBM~ Ht + Wt + log(RCC) + WCC, method="sir", nslices=8)
+\end{verbatim}
+\normalsize
+\noindent First, provide a formula giving the response $Y$ on the
+left side, and the predictors on the right side. The response can
+be a vector of $n$ elements or for \sir\ and
+\save\ it can be a matrix with $n$ rows and $k$ columns.
+The model statement on the right side can include factors and
+interactions, or transformations, so the syntax is very general.
+%As with \dcode{lm}, you can
+%also specify a vector for $Y$ followed by a matrix for $X$ in place of the
+%model statement.
+The remaining arguments are all optional, and the values shown are
+all defaults.  \dcode{method} can equal either \dcode{"sir"},
+\dcode{"save"},  \dcode{"phd"}, \dcode{"phdres"}, \dcode{"phdq"}
+or
+\dcode{"phdy"}.
+Adding other methods is not
+difficult, and is described in Section~\ref{sec:newmeth}.
+The number of slices is relevant only for the methods that use slicing,
+\sir\ and \save, and has default equal to the larger of 8
+and the number of predictors plus 3. If the response has $k$
+columns, then the argument \dcode{nslices} should be a vector of
+$k$ elements.  If it is specified as a number rather than a
+vector, then that number will give the total number of cells,
+approximately. For example, if $k=2$ and \dcode{nslices=8}, the
+program will slice $\sqrt{8}
+\approx 3$ slices along each of the two response variables for a
+total of $3\times 3=9$ cells. The argument \dcode{numdir}
+specifies the number of directions to display in printed output
+and the number of tests to compute.  The default is 4.
+
+Keywords inherited from \dcode{lm} include \dcode{weights},
+which if set should be a
+vector of the same length of the response of positive numbers;
+\dcode{contrasts},
+which specifies how to turn factors into variables;
+\dcode{na.action}, which specifies how to ``handle" missing
+values.  The default for this argument is
+\dcode{na.omit}, which will reduce the dataset by eliminating all cases with
+one or more missing value.  The argument \dcode{subset} can be set
+to a list of case indices to be used in the computations; all
+other cases are ignored.
+
+Brief printed output from the \dr\ method is obtained by simply typing
+the name of the object created, \dcode{i1} in the above example:
+\small\begin{verbatim}
+> i1
+
+Call:
+dr(formula = LBM ~ Ht + Wt + log(RCC) + WCC, method = "sir", nslices = 8)
+
+Eigenvectors:
+                Dir1          Dir2        Dir3         Dir4
+Ht        0.01054752 -0.0001569418 -0.10750718  0.009197952
+Wt        0.02374812  0.0040912479  0.06248766 -0.019286750
+log(RCC)  0.99960915 -0.9999614779  0.99211547  0.757087590
+WCC      -0.01031144  0.0077640009 -0.01563290  0.652963858
+Eigenvalues:
+[1] 0.87789585 0.15017504 0.03972711 0.01737281
+\end{verbatim}
+\normalsize
+\noindent This output repeats the call that created the object, and basic summary
+statistics, described more completely in Section~\ref{sec:sir}.  Using the
+\dcode{summary} method gives more complete output:
+\small\begin{verbatim}
+> summary(i1)
+
+Call:
+dr(formula = LBM ~ Ht + Wt + log(RCC) + WCC, method = "sir", nslices = 8)
+
+Terms:
+LBM ~ Ht + Wt + log(RCC) + WCC
+
+Method:
+sir with 8 slices, n = 202.
+
+Slice Sizes:
+26 26 25 25 25 27 30 18
+
+Eigenvectors:
+             Dir1       Dir2     Dir3      Dir4
+Ht        0.01055  0.0001569 -0.10751  0.009198
+Wt        0.02375 -0.0040912  0.06249 -0.019287
+log(RCC)  0.99961  0.9999615  0.99212  0.757088
+WCC      -0.01031 -0.0077640 -0.01563  0.652964
+
+              Dir1   Dir2    Dir3    Dir4
+Eigenvalues 0.8779 0.1502 0.03973 0.01737
+R^2(OLS|dr) 0.9986 0.9987 0.99978 1.00000
+
+Asymp. Chi-square tests for dimension:
+               Stat df  p-value
+0D vs >= 1D 219.205 28 0.000000
+1D vs >= 2D  41.870 18 0.001153
+2D vs >= 3D  11.534 10 0.317440
+3D vs >= 4D   3.509  4 0.476465
+\end{verbatim}
+\normalsize
+\noindent
+This output repeats most of the basic output, plus it also gives information
+on the slices and on tests of dimension, if available.
+
+The class of the object created by \dr\ depends on the value of
+the argument \dcode{method}.  For example, if
+\dcode{method="sir"}, the object is of class \dcode{sir} if the response is
+univariate and \dcode{msir} if the response is multivariate.  If
+\dcode{method="save"}, the object is of class \dcode{save} or \dcode{msave}.
+All these objects inherit from the class \dcode{dr}.
+
+Several additional quantities are computed and stored in the object.  These
+include:
+\small
+\begin{verbatim}
+> names(i1)
+ [1] "formula"          "contrasts"        "xlevels"          "call"
+ [5] "ols.coef"         "ols.fit"          "weights"          "cols.used"
+ [9] "offset"           "estimate.weights" "terms"            "method"
+[13] "response.name"    "model"            "cases"            "evectors"
+[17] "evalues"          "numdir"           "raw.evectors"     "decomp"
+[21] "M"                "slice.info"
+\end{verbatim}
+\normalsize
+\noindent
+For example, to have access to the eigenvectors of $\hat{M}$, type
+\small\begin{verbatim}
+> i1$evectors
+                Dir1          Dir2        Dir3         Dir4
+Ht        0.01054752  0.0001569418 -0.10750718  0.009197952
+Wt        0.02374812 -0.0040912479  0.06248766 -0.019286750
+log(RCC)  0.99960915  0.9999614779  0.99211547  0.757087590
+WCC      -0.01031144 -0.0077640009 -0.01563290  0.652963858
+\end{verbatim}
+\normalsize
+\noindent while {\small \verb+i1$M+} %$
+returns the value of the matrix $\hat{M}$.  \dcode{ols.fit} returns ols
+fitted values (or weighted least squares fitted values, if appropriate)
+which are computed and used by some of the methods and summaries.
+
+\section{Methods available}
+\subsection{Sliced inverse regression}\label{sec:sir}
+Sliced inverse regression, or \sir, was proposed by Li (1991); see Cook
+(1998, Chapter 11).  In \sir, we
+make use of the fact that given certain assumptions on the marginal
+distribution of $X$\footnote{For the methods discussed here, we generally
+need the linearity condition, the $\E(A'x|B'x)$ is a linear function for
+$B'x$,
+where $A$ is any matrix, and $B$ is a matrix such that $F(y|x) = F(y|B'x)$.
+This condition holds, for example, if the marginal distribution of $X$ is
+normal, although that assumption is much stronger than is needed.  See Cook
+(1998), Cook and Weisberg (1994, 1999) for more discussion.}, the inverse regression problem $F(z|y) \subseteq
+\span(B)$.  The general computational outline for \sir\ is as follows:
+\begin{enumerate}
+    \item Examine $F(z|y)$ by dividing the range of $Y$ into $h$ slices,
+    each with approximately the same number of observations.  With a
+    multivariate response ($Y$ has $k$ columns), divide the range of
+    $Y_1 \times Y_2 \ldots \times Y_k$ into $h$ cells.  For example,
+    when
+    $k = 3$, and we slice $Y_1$ into 3 slices, $Y_2$ into 2 slices, and
+    $Y_3$ into 4 slices, we will have $h=2\times3\times4=24$ cells.
+    The number
+    of slices or cells $h$ is a tuning parameter of the procedure.
+    \item Assume that within each slice or cell $F(z|y)$ is approximately
+    constant.  Then the expected value of the within-slice vector of
+    sample means will be a vector in $\span(B)$.
+    \item  Form the $h \times p$ matrix whose $i$-th row is
+    the vector of weighted sample means in the $i$-th slice.
+    The matrix $\hat{M}$
+    is the $p \times p$ sample covariance matrix of these sample mean
+    vectors.
+\end{enumerate}
+\sir\ thus concentrates on the mean function $\E(Z|Y)$, and ignores any
+other dependence.
+
+The output given in the last section is an example of typical output for
+\sir.  First is given the eigenvectors and eigenvalues of $\hat{M}$; the
+eigenvectors have been back-transformed to the original $X$-scale.
+Assuming that the dimension is $d$, the estimate of $\span(B)$ is given by
+the first $d$ eigenvectors.  Also given along with the eigenvectors is the
+square of the correlation between the ols fitted values and the first $d$
+principal directions.  The first direction selected by \sir\ is almost
+always about the same as the first direction selected by ols, as is the case
+in the example above.
+
+For \sir, Li (1991) provided asymptotic tests of dimension based on partial
+sums of eigenvalues, and these tests are given in the summary.  The tests
+have asymptotic Chi-square distributions, with the number of degrees of
+freedom shown in the output.
+
+Examining the tests shown in the final output, we see that the
+test of $d=0$ versus $d>0$ has a very small $p$-value, so we would
+reject $d=0$.  The test for $d=1$ versus $d>1$ has $p$-value near
+$0.001$, suggesting that $d$ is at least 2.  The test for $d=2$
+versus $d>2$ has $p$-value of about $0.31$, so we suspect that
+$d=2$ for this problem.  This suggests that further analysis of
+this regression problem can be done based on the 3D graph of the
+response versus the linear combinations of the predictors
+determined by the first two eigenvectors, and the dimension of the
+problem can be reduced from 4 to 2 without loss of information.
+See Cook (1998), and Cook and Weisberg (1994, 1999), for further
+examples and interpretation.
+
+When the response is multivariate, the format of the call is:
+\small\begin{verbatim}
+m1 <- dr(cbind(LBM,RCC)~Ht+Wt+WCC))
+\end{verbatim}
+\normalsize
+The summary for a multivariate response is similar:
+\small \begin{verbatim}
+> summary(m1)
+
+Call:
+dr(formula = cbind(LBM, RCC) ~ Ht + Wt + WCC)
+
+Terms:
+cbind(LBM, RCC) ~ Ht + Wt + WCC
+
+Method:
+sir with 9 slices, n = 202, using weights.
+
+Slice Sizes:
+24 23 23 23 22 21 22 22 22
+
+Eigenvectors:
+      Dir1    Dir2    Dir3
+Ht  0.4857  0.3879  0.1946
+Wt  0.8171 -0.2238 -0.1449
+WCC 0.3105 -0.8941  0.9701
+
+              Dir1    Dir2    Dir3
+Eigenvalues 0.7076 0.05105 0.02168
+R^2(LBM|dr) 0.9911 0.99124 1.00000
+R^2(RCC|dr) 0.9670 0.97957 1.00000
+
+Asymp. Chi-square tests for dimension:
+              Stat df p-value
+0D vs >= 1D 157.63 24  0.0000
+1D vs >= 2D  14.69 14  0.3995
+2D vs >= 3D   4.38  6  0.6254
+\end{verbatim}
+\normalsize
+The test statistics are the same as in the univariate response case, as is
+the interpretation of the eigenvalues and vectors.  The output gives the
+squared correlation of each of the responses with the eigenvectors.
+
+\subsection{Sliced average variance estimation}
+Sliced average variance estimation, or \save, was proposed by Cook and
+Weisberg (1991).  As with \sir, we slice the range of $Y$ into $h$ slices,
+but rather than compute the within-slice mean we compute within-slice
+covariance matrices.  If $C_i$ is the weighted within slice sample covariance
+matrix in slice $i$,
+then the matrix $\hat{M}$ is given by
+\[
+\hat{M} = \frac{1}{n}\sum g_i(I-C_i)^2
+\]
+where $g_i$ is the sum of the weights in the slice; if all weights are
+equal, then the $g_i$ are just the number of observations in each slice.
+\save\ looks at
+second moment information and may miss first-moment information,
+particularly it may miss linear trends.
+
+Output for \save\ is similar to \sir, except that no asymptotic tests have
+been developed.  However, tests of dimension based on a permutation test are
+available; see Section~\ref{sec:perm}.
+
+\subsection{Principal Hessian direction}
+Li (1992) proposed the method called principal Hessian directions, or pHd.
+This method examines the matrix $\hat{M}$ given by
+\[
+\hat{M} = \frac{1}{n}\sum_{i=1}^n w_i f_i z_iz_i'
+\]
+where $f_i$ is either equal to $y_i$ (method \phdy) or $f_i$ is an ols
+residual (method \phd\ or \phdres), and $w_i$ is the weight for the $i$-th
+observation (recall again that we assume that $\sum w_i = n$, and if this is
+not satisfied the program rescales the weights to meet this condition).
+%If the method is \phdq, then $f_i$ is the $i$th residual from the full
+%quadratic ols fit of $y$ to the predictors.
+While all methods produce $\hat{M}$
+matrices whose eigenvectors are consistent estimates
+of vectors in $\span(B)$, the
+residual methods are more suitable for tests of dimension.  See Cook (1998,
+Chapter 12) for details.
+
+Output for \phd\ is again similar to \sir, except for the tests.  Here is
+the output for the same setup as before, but for method \phdres:
+\small
+\begin{verbatim}
+> i2 <- update(i1,method="phdres")
+> summary(i2)
+
+Call:
+dr(formula = LBM ~ Ht + Wt + log(RCC) + WCC, method = "phdres")
+
+Terms:
+LBM ~ Ht + Wt + log(RCC) + WCC
+
+Method:
+phd, n = 202.
+
+Eigenvectors:
+             Dir1       Dir2      Dir3     Dir4
+Ht        0.12764 -0.0003378  0.005550  0.02549
+Wt       -0.02163  0.0326138 -0.007342 -0.01343
+log(RCC) -0.74348  0.9816463  0.999930 -0.99909
+WCC       0.65611 -0.1879008 -0.007408 -0.03157
+
+              Dir1   Dir2   Dir3   Dir4
+Eigenvalues 1.4303 1.1750 1.1244 0.3999
+R^2(OLS|dr) 0.2781 0.9642 0.9642 1.0000
+
+Asymp. Chi-square tests for dimension:
+              Stat df Normal theory Indep. test General theory
+0D vs >= 1D 35.015 10     0.0001241    0.005427        0.01811
+1D vs >= 2D 20.248  6     0.0025012          NA        0.03200
+2D vs >= 3D 10.281  3     0.0163211          NA        0.05530
+3D vs >= 4D  1.155  1     0.2825955          NA        0.26625
+\end{verbatim}
+\normalsize
+The column of tests called ``normal theory" were proposed by Li (1992) and
+require that the predictors are
+normally distributed.  These statistics are asymptotically distributed as
+Chi-square, with the degrees of freedom shown.
+
+When the method is \phdres\, additional tests are provided.
+Since this method is based on residuals, it gives tests concerning the
+central subspace for the regression of the residuals on $X$ rather than the
+response on $X$.  The subspace for this residual regression may be, but
+need not be, smaller than the subspace for the original regression.
+For example, the column
+marked ``Indep. test" is essentially a test of $d=0$ versus $d>0$ described
+by Cook (1998) for the residual regression.  Should the significance level
+for this test be large, we might conclude that the residual regression
+subspace is of dimension zero.  From this we have two possible conclusions:
+(1) the dimension of the response regression may be 1 if using the residuals
+removed a linear trend, or (2) the dimension may be 0 if the residuals did
+not remove a linear trend.
+
+Similarly, if the significance level for the independence test is small, then
+we can conclude that the dimension is at least 1.  It could be one if the
+method is picking up a nonlinear trend in the OLS direction, but it will be
+2 if the nonlinearity is in some other direction.
+
+The independence test and the final column, also from Cook
+(1998), use the same test statistic, but different distributions based on
+different assumptions.
+Significance levels are obtained by comparing the statistic to the
+distribution of a random linear combination of Chi-square statistics, each
+with one df.  These statistics do not require normality
+of the predictors.  The way the significance levels
+in this column are approximated using the method of Wood (1989).
+
+\subsection{Quadratic \phd}
+Li (1992) proposed an alternative method of estimating the Hessian matrix
+based on quadratic regression, as follows:  (1) fit the ols regression of
+the response on the full second-order model based on all $p$ predictors; (2)
+set $\hat{M}$ to be the $p \times p$ matrix whose $(i,j)$ element is the
+estimated coefficient of $x_ix_j$.  Given this estimate of $M$, proceed as
+with other \phd\ methods.
+
+\subsection{Multivariate \phd}
+No multivariate extensions of \phd\ have yet been proposed, and so the
+response must be univariate for any \phd\ method.
+
+\subsection{Adding other methods to \ir}\label{sec:newmeth}
+You may skip this section unless you are interested in adding
+additional dimension reduction methods to \ir. The
+\ir\ function is designed to be flexible and to make adding
+additional methods to the package as easy as possible. Here are
+the steps you need to follow:
+\begin{enumerate}
+\item Select a name for your method.  For example suppose you
+select the name ``poly'' to mean that you will be estimating $M$
+by fitting polynomials to the inverse plots each of the predictors
+versus the response.  When you call \ir\ with
+\dcode{method="poly"}, an object of class \dcode{poly} will be
+created.  If your response is a matrix, the object will be of type
+\dcode{mpoly}, which inherits from \dcode{poly}.
+
+\begin{table}
+\hrule
+\caption{The \dcode{dr.fit.M} method for \sir.}
+\label{tab:fitM}
+\small\begin{verbatim}
+#####################################################################
+#     Sliced Inverse Regression
+#####################################################################
+
+dr.fit.M.sir <-function(object,z,y,w=NULL,nslices=NULL,
+                        slice.info=NULL,...) {
+# get slice information
+    h <- if (!is.null(nslices)) nslices else max(8, NCOL(z)+3)
+    slices<- if(is.null(slice.info)) dr.slices(y,h) else slice.info
+# initialize slice means matrix
+    zmeans <- matrix(0,slices$nslices,NCOL(z))
+    slice.weight <- slices$nslices
+# make sure weights add to n
+    wts <- if(is.null(w)) rep(1,NROW(z)) else NROW(z) * w /sum(w)
+# compute weighted means within slice (weights always add to n)
+    wmean <- function (x, wts) { sum(x * wts) / sum (wts) }
+    for (j in 1:slices$nslices){
+      sel <- slices$slice.indicator==j
+      zmeans[j,]<- apply(z[sel,],2,wmean,wts[sel])
+      slice.weight[j]<-sum(wts[sel])}
+# get M matrix for sir
+    M <- t(zmeans) %*% apply(zmeans,2,"*",slice.weight)/ sum(slice.weight)
+    return (list (M=M,slice.info=slices))
+}
+\end{verbatim}
+\hrule
+\normalsize
+\end{table}
+\item
+You will need to write a function called \dcode{dr.fit.M.poly}
+that estimates the $M$ matrix for your method.  You can model this
+function after the function \dcode{dr.fit.M.sir} shown in
+Table~\ref{tab:fitM}.  The important arguments that are passed to
+this function include \dcode{z}, which is an $n \times p$ rotated
+and centered data matrix with no missing values; \dcode{y}, which
+is the response vector or matrix, and \dcode{w}, which is the
+vector of weights, if any.  If your method requires other
+parameters, for example setting a degree of a polynomial, simply
+add the argument
+\dcode{degree=2} to the list of function arguments.  This sets the
+default value of \dcode{degree} equal to 2.  The ``\ldots''
+argument in the functions allow you to add the \dcode{degree}
+argument when you call the function \ir.  Your function must
+return a list, including the argument \dcode{M}, which is the
+matrix of interest. $M$ can be either a square matrix leading to
+an analysis of eigenvalues and eigenvectors, as in the example for
+\sir, or it can be a rectangular matrix, leading to use of
+singular values and vectors.  All entries in the list will become
+attributes of the resulting object.  For example, if your list is
+\dcode{list(z=z,degree=degree)}, when you create an object like
+\small
+\begin{verbatim}
+> i1 <- dr(LBM~Ht+Wt+RCC+WCC,method="poly",degree=3)
+\end{verbatim}
+\normalsize
+the value of \dcode{i1\$degree} will be 3.
+\item
+If your method works differently when \dcode{y} is a matrix,
+write a method called \dcode{dr.fit.M.mpoly} to do the
+computations for this case.  For \sir, the only difference between
+univariate and multivariate responses is in the way the slices are obtained,
+and the method \dcode{dr.slices} works for either case.  As a result, a
+separate multivariate fit method is not required for \sir.
+\begin{table}
+\hrule
+\caption{The \dcode{dr.test.sir} function.}\label{tab:testsir}
+\small\begin{verbatim}
+dr.test.sir<-function(object,nd) {
+#compute the sir test statistic for the first nd directions
+    e<-sort(object$evalues)
+    p<-length(object$evalues)
+    n<-object$cases
+    st<-df<-pv<-0
+    nt <- min(p,nd)
+    for (i in 0:nt-1)
+      {st[i+1]<-n*(p-i)*mean(e[seq(1,p-i)])
+       df[i+1]<-(p-i)*(object$slice.info$nslices-i-1)
+       pv[i+1]<-1-pchisq(st[i+1],df[i+1])
+      }
+    z<-data.frame(cbind(st,df,pv))
+    rr<-paste(0:(nt-1),"D vs >= ",1:nt,"D",sep="")
+    dimnames(z)<-list(rr,c("Stat","df","p-value"))
+    z
+}
+\end{verbatim}
+\normalsize\hrule
+\end{table}
+
+\item
+If your method has tests, other than the permutation tests
+available for all methods, you will need to write a function
+called \dcode{dr.test.poly} (or \dcode{dr.test.mpoly} if a
+separate method is required for multivariate responses).  The
+equivalent method for \sir\ is shown in Table~\ref{tab:testsir}.
+The test method is called by the \dcode{summary.dr} function.
+\end{enumerate}
+
+The function \dcode{dr.fit.y(object)} returns the response
+variable for use in computing $M$.  For example, the function
+\dcode{dr.fit.y.phdy} returns the left-hand side variable from the
+formula specified in the call to \dr, while
+\dcode{dr.fit.y.phdres} %and \dcode{dr.fit.y.phdq} return, respectively,
+returns
+the residuals from the regression of the response on the predictors.
+%and the residuals from the full quadratic regression of the response on the
+%predictors.
+You may also want to write a
+\dcode{summary.dr.poly} method if the default summary is not
+adequate for your needs.
+
+\section{Permutation tests}\label{sec:perm}
+Cook (1998) and Yin (2000) discuss permutation tests of dimension that can
+be used with a dimension reduction method.  These are implemented in the
+function \dcode{dr.permutation.test}.  Typical use of this function is
+\small\begin{verbatim}
+> dr.permutation.test(i1,npermute=499)
+
+Permutation tests
+Number of permutations:
+[1] 499
+
+Test results:
+               Stat p-value
+0D vs >= 1D 219.205   0.000
+1D vs >= 2D  41.870   0.002
+2D vs >= 3D  11.534   0.284
+3D vs >= 4D   3.509   0.354
+\end{verbatim}
+\normalsize
+\noindent
+The function requires the name of the object.  The number of permutations
+defaults to 50 and the number of directions defaults to 3.  Increasing
+either can increase the computation time required to obtain the solution.
+The permutation test results for the example
+are very similar to the asymptotic results given earlier.
+
+\section{Graphical methods}
+The function call \dcode{plot(i1)} returns a scatterplot matrix of the
+response and the principal directions.  The call
+\dcode{plot(i1,mark.by.y=TRUE)} produces a scatterplot matrix of the
+principal directions, but with points marked (colored) according to the
+value of the response; the point marking does not work with \Splus.
+
+The function call \dcode{dr.coplot(i1)} returns a plot of the response versus
+the first principal direction, with a separate panel conditioning on the
+value of the second principal direction (a coplot).  The call
+\dcode{dr.coplot(i1,mark.by.y=T)}, gives a coplot of the first direction
+versus the second direction conditioning on the third direction and using
+color to encode the information about the response.
+
+The function \dcode{rotplot} is a generic function that allows looking at a
+number of static views of a 3D plot.  The call
+\small\begin{verbatim}
+> rotplot(dr.directions(m1,1:2),dr.y(m1),number=16)
+\end{verbatim}
+\normalsize
+\noindent
+gives 16 views of the 3D plot of the response versus linear combinations of
+the first two principal directions.
+
+\section{Weights}
+Weights are generally used in dimension reduction methods to make the resulting
+weighted sample closer to a normal distribution than the original sample.
+Cook (1998, Section 8.4) discusses the method that is implemented here.
+When weights are present, they are used in centering the data and computing
+the covariance matrix, and they are used in computing the objective matrix
+$M$ for \phd.
+%For consistency with \arc, they are not used in computing $M$
+%for \sir\ and \save\ unless the argument \dcode{use.weights} is set to
+%\dcode{T}.
+Weights may be provided by the user with the \dcode{weights}
+argument.  If
+\dcode{weights=NULL}, the default, no weighting is used.
+
+The function \dcode{dr.weights} is used to estimate weights using the
+algorithm described by Cook (1998, Sec. 8.4).  There are several
+other arguments that control how the weights are computed, as
+described below, and on the help page for the function
+\dcode{dr.weights}.  The algorithm works as follows:
+\begin{enumerate}
+    \item For an $n\times p$ data matrix $X$, find estimates $m$ and $S$
+    of the mean and covariance matrix.  For this purpose, in \R\ the function
+    \dcode{cov.rob} in the \dcode{lqs} package is used, while in \Splus\ the
+    function \dcode{covRob} in the \dcode{robust} package is used; in either
+    case the needed package will be loaded automatically.
+    If you do not want to use one of these routines, you must rewrite the
+    function
+    \dcode{robust.center.scale} to use your preferred code.
+    In \R, the method of computing $m$ and $S$ is determined
+    by the argument \dcode{covmethod}.  If \dcode{covmethod="classical"}, the
+    usual estimator is used for $S$, but $m$ is estimated by medians.  If
+    \dcode{method="mve"}, the default, or \dcode{method="mcd"}, the
+    covariance matrix is estimated by the minimum volume ellipsoid method
+    and the minimum determinant method, respectively.  These latter two also
+    return a robust estimate of center.  Any tuning parameters for
+    the method to compute the robust estimate of $m$ and $S$
+    can be passed from the call to \dr.
+    See the documentation for
+    \dcode{cov.rob} for a description of these additional parameters.  All
+    the defaults are sensible, so most users will not need to use these
+    additional parameters.
+   \item Compute the matrix $Z = (X - 1m')S^{-1/2}$.  If the data were
+   normally distributed $\N(m,S)$, the rows of $Z$ would be like a
+   sample from $\N(0,I)$.
+   \item Obtain a random vector $b$ from the $\N(0,\sigma^2I)$ distribution.
+   The parameter \dcode{sigma=1} is a tuning parameter that can be set in
+   the call to \ir, and values near 1 or slightly smaller seem
+   appropriate.  Find the row of $Z$ that is closest to $b$ (the code uses
+   Euclidean distance), and increase a counter for that row by 1.
+   \item The argument \dcode{nsamples} determines the number of times this
+   last step is repeated; the default is
+   \dcode{nsamples=10*dim(x)[1]}
+   where $X$ is the $n\times p$ data matrix; this number may be too small.
+   \item Return a vector of weights given by the value of the counter
+   divided by \dcode{nsamples} and multiplied by $n$, so the sum of the
+   weights will be $n$.
+   \end{enumerate}
+
+An example of the use of weights is:
+\begin{verbatim}
+> wts <- dr.weights(LBM~Ht+Wt+RCC+WCC)
+> i1 <- dr(LBM~Ht+Wt+RCC+WCC,weights=wts,method="phdres")
+\end{verbatim}
+
+\section{Miscellaneous functions included in \ir}
+The function \dcode{dr.direction} takes two arguments, the object
+name, and which directions are wanted (for, example, \dcode{1:3}
+returns the first three directions).  It returns the matrix $XU$,
+scaled to have unit column length unless the argument norm is
+false, where $U$ gives the specified eigenvectors.
+
+The function calls \dcode{dr.x(i1}) and \dcode{dr.y(i1)} return the model
+matrix and the response, respectively.
+\dcode{dr.z(i1,center=T,rotate=T)} returns the centered and rotated $Z$ matrix
+from $X$.  You can also use \dcode{dr.z} by explicity providing a
+matrix $X$ in place of the first argument, and if necessary a
+vector of weights as a second argument.
+
+The routine used for slicing is called
+\dcode{dr.slices(y,h)} to slice \dcode{y} into \dcode{h} slices.  If \dcode{y} has
+$p$ columns and \dcode{h} has $p$ elements, then slicing is done
+recursively.  The first column of \dcode{y} is sliced into
+\dcode{h[1]} slices.  Within each of these slices, the second
+column of \dcode{y} is sliced into \dcode{h[2]} slices, giving
+\dcode{h[1]*h[2]} slices. This process is then repeated for any
+additional columns.  If \dcode{h} is a scalar, then each dimension
+is sliced into the smallest integer larger than \dcode{h}$^{1/p}$
+slices.  For example, if $p=2$ and \dcode{h}$=8$, then each
+dimension has 3 slices for a total of 9.
+
+
+\section{Bug Reports}
+Please send bug reports to
+\htmladdnormallink{sandy@stat.umn.edu}{mailto:sandy@stat.umn.edu}.
+
+\section{\Splus}
+\dr\ has been tested with \Splus\ versions 5 and 6
+under Linux.  If you want to use \dr\ with \Splus, you must change the
+value of \dcode{whichengine} on line 34 of the file R/dr to
+\dcode{whichengine <- "s6"} before you load the file.
+All options available in \R\ seem to work in \Splus, except that the argument
+\dcode{mark.by.y} on plots and coplots and the function
+\dcode{markby} do not work with \Splus.
+
+\section{Acknowledgements}
+Jorge de la Vega did extensive testing of the code, and wrote some of the
+functions, and Cindy Yu wrote early versions of some of the functions.
+Referee's comments were very helpful in revising this paper and in
+documenting \dr.  Kurt Hornik was very helpful in getting the package to
+pass all the tests built-in to \R.
+
+
+\begin{references}
+
+%\item Bentler, Peter M. and Xie, Jun (2000).  corrections to test statistics
+%in principal Hessian directions.  {\em Statistics and Probability Letters},
+%47, 381--389.
+
+\item Cook, R. D. (1998). {\it Regression Graphics}.  New York:  Wiley.
+
+\item Cook, R. D. and Weisberg, S. (1991).  Discussion of Li (1991).
+\jasa, 86, 328--332.
+
+\item Cook, R. D. and Weisberg, S. (1994).  {\it An Introduction to
+Regression Graphics}.  New York:  Wiley.
+
+\item Cook, R. D. and Weisberg, S. (1999). {\it Applied Regression
+Including Computing and Graphics},  New York:  Wiley.
+
+\item Li, K C. (1991).  Sliced inverse regression for dimension reduction
+(with discussion), \jasa, 86, 316-342.
+
+\item Li, K C. (1992).  On principal Hessian directions for data
+visualization and dimension reduction:  Another application of Stein's
+lemma.  \jasa, 87, 1025--1034.
+
+\item Wood, A. (1989).  An F-approximation to the distribution of a linear
+combination of chi-squared random variables.  {\em Communication in
+Statistics, Part B -- Simulation and Computation}, 18, 1439--1456.
+
+\item Yin, Xiangrong (2000).  Dimension reduction using inverse third
+moments and central $k$-th moment subspaces.  Unpublished Ph. D.
+dissertation, University of Minnesota, School of Statistics.
+\end{references}
+
+\newpage
+\section{Function documentation}
+\small
+
+\input{latex/dr.tex}
+
+\input{latex/dr.estimate.weights.tex}
+
+\input{latex/dr.permutation.test.tex}
+
+\input{latex/plot.dr.tex}
+
+\input{latex/rotplot.tex}
+
+\input{latex/dr.x.tex}
+
+
+{\it The following documentation is from the package lqs by Brian Ripley,
+and is included here for convenience:}
+
+\input{latex/cov.rob.tex}
+
+\end{document}

@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.2beta8 (1.43)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Usage</TITLE>
+<META NAME="description" CONTENT="Usage">
+<META NAME="keywords" CONTENT="drdoc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.2beta8">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="drdoc.css">
+
+<LINK REL="next" HREF="node3.html">
+<LINK REL="previous" HREF="node1.html">
+<LINK REL="up" HREF="drdoc.html">
+<LINK REL="next" HREF="node3.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html44"
+  HREF="node3.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html42"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html36"
+  HREF="node1.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html45"
+  HREF="node3.html">Methods available</A>
+<B> Up:</B> <A NAME="tex2html43"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html37"
+  HREF="node1.html">Introduction</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00020000000000000000">
+Usage</A>
+</H1>
+The  package for dimension reduction called <TT>dr</TT> can be
+obtained from the Comprehensive R Archive Network, CRAN, at
+<code>http://www.R-project.org</code>.
+The primary function in this package is called <TT>dr</TT>.  Its usage is
+modeled after the  function <FONT SIZE="-1"><TT>lm</TT></FONT> that is used for fitting
+linear models, and so many of the arguments that can be used in
+<FONT SIZE="-1"><TT>lm</TT></FONT> can also be used in <TT>dr</TT>.  The following statements will
+examine dimension reduction using <I>sir</I> applied to the Australian
+Institute of Sport data:
+<FONT SIZE="-1">
+</FONT><PRE>
+&gt; library(dr)
+&gt; data(ais)
+&gt; attach(ais)
+&gt; i1 &lt;- dr(LBM~ Ht + Wt + log(RCC) + WCC, method="sir", nslices=8)
+</PRE><FONT SIZE="-1">
+</FONT>
+First, provide a formula giving the response <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="$Y$"> on the
+left side, and the predictors on the right side. The response can
+be a vector of <IMG
+ WIDTH="16" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img29.png"
+ ALT="$n$"> elements or for <I>sir</I> and
+<I>save</I> it can be a matrix with <IMG
+ WIDTH="16" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img29.png"
+ ALT="$n$"> rows and <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$"> columns.
+The model statement on the right side can include factors and
+interactions, or transformations, so the syntax is very general.
+The remaining arguments are all optional, and the values shown are
+all defaults.  <FONT SIZE="-1"><TT>method</TT></FONT> can equal either <FONT SIZE="-1"><TT>"sir"</TT></FONT>,
+<FONT SIZE="-1"><TT>"save"</TT></FONT>,  <FONT SIZE="-1"><TT>"phd"</TT></FONT>, <FONT SIZE="-1"><TT>"phdres"</TT></FONT>, <FONT SIZE="-1"><TT>"phdq"</TT></FONT>
+or
+<FONT SIZE="-1"><TT>"phdy"</TT></FONT>.
+Adding other methods is not
+difficult, and is described in Section&nbsp;<A HREF="node9.html#sec:newmeth">3.6</A>.
+The number of slices is relevant only for the methods that use slicing,
+<I>sir</I> and <I>save</I>, and has default equal to the larger of 8
+and the number of predictors plus 3. If the response has <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$">
+columns, then the argument <FONT SIZE="-1"><TT>nslices</TT></FONT> should be a vector of
+<IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$k$"> elements.  If it is specified as a number rather than a
+vector, then that number will give the total number of cells,
+approximately. For example, if <IMG
+ WIDTH="44" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img50.png"
+ ALT="$k=2$"> and <FONT SIZE="-1"><TT>nslices=8</TT></FONT>, the
+program will slice <!-- MATH
+ $\sqrt{8}
+\approx 3$
+ -->
+<IMG
+ WIDTH="56" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img51.png"
+ ALT="$\sqrt{8}
+\approx 3$"> slices along each of the two response variables for a
+total of <IMG
+ WIDTH="71" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img52.png"
+ ALT="$3\times 3=9$"> cells. The argument <FONT SIZE="-1"><TT>numdir</TT></FONT>
+specifies the number of directions to display in printed output
+and the number of tests to compute.  The default is 3.
+
+Keywords inherited from <FONT SIZE="-1"><TT>lm</TT></FONT> include <FONT SIZE="-1"><TT>weights</TT></FONT>,
+which if set should be a
+vector of the same length of the response of positive numbers;
+<FONT SIZE="-1"><TT>contrasts</TT></FONT>,
+which specifies how to turn factors into variables;
+<FONT SIZE="-1"><TT>na.action</TT></FONT>, which specifies how to ``handle" missing
+values.  The default for this argument is
+<FONT SIZE="-1"><TT>na.omit</TT></FONT>, which will reduce the dataset by eliminating all cases with
+one or more missing value.  The argument <FONT SIZE="-1"><TT>subset</TT></FONT> can be set
+to a list of case indices to be used in the computations; all
+other cases are ignored.
+
+Brief printed output from the <TT>dr</TT> method is obtained by simply typing
+the name of the object created, <FONT SIZE="-1"><TT>i1</TT></FONT> in the above example:
+<PRE>
+&gt; i1
+
+Call:
+dr(formula = LBM ~ Ht + Wt + log(RCC) + WCC, method = "sir", nslices = 8)
+
+Eigenvectors:
+                Dir1          Dir2        Dir3         Dir4
+Ht        0.01054752 -0.0001569418 -0.10750718  0.009197952
+Wt        0.02374812  0.0040912479  0.06248766 -0.019286750
+log(RCC)  0.99960915 -0.9999614779  0.99211547  0.757087590
+WCC      -0.01031144  0.0077640009 -0.01563290  0.652963858
+Eigenvalues:
+[1] 0.87789585 0.15017504 0.03972711 0.01737281
+</PRE><FONT SIZE="-1">
+</FONT>
+This output repeats the call that created the object, and basic summary
+statistics, described more completely in Section&nbsp;<A HREF="node4.html#sec:sir">3.1</A>.  Using the
+<FONT SIZE="-1"><TT>summary</TT></FONT> method gives more complete output:
+<PRE>
+&gt; summary(i1)
+
+Call:
+dr(formula = LBM ~ Ht + Wt + log(RCC) + WCC, method = "sir", nslices = 8)
+
+Terms:
+LBM ~ Ht + Wt + log(RCC) + WCC
+
+Method:
+sir with 8 slices, n = 202.
+
+Slice Sizes:
+26 26 25 25 25 27 30 18
+
+Eigenvectors:
+             Dir1       Dir2     Dir3      Dir4
+Ht        0.01055  0.0001569 -0.10751  0.009198
+Wt        0.02375 -0.0040912  0.06249 -0.019287
+log(RCC)  0.99961  0.9999615  0.99212  0.757088
+WCC      -0.01031 -0.0077640 -0.01563  0.652964
+
+              Dir1   Dir2    Dir3    Dir4
+Eigenvalues 0.8779 0.1502 0.03973 0.01737
+R^2(OLS|dr) 0.9986 0.9987 0.99978 1.00000
+
+Asymp. Chi-square tests for dimension:
+               Stat df  p-value
+0D vs &gt;= 1D 219.205 28 0.000000
+1D vs &gt;= 2D  41.870 18 0.001153
+2D vs &gt;= 3D  11.534 10 0.317440
+3D vs &gt;= 4D   3.509  4 0.476465
+</PRE><FONT SIZE="-1">
+</FONT>
+
+This output repeats most of the basic output, plus it also gives information
+on the slices and on tests of dimension, if available.
+
+The class of the object created by <TT>dr</TT> depends on the value of
+the argument <FONT SIZE="-1"><TT>method</TT></FONT>.  For example, if
+<FONT SIZE="-1"><TT>method="sir"</TT></FONT>, the object is of class <FONT SIZE="-1"><TT>sir</TT></FONT> if the response is
+univariate and <FONT SIZE="-1"><TT>msir</TT></FONT> if the response is multivariate.  If
+<FONT SIZE="-1"><TT>method="save"</TT></FONT>, the object is of class <FONT SIZE="-1"><TT>save</TT></FONT> or <FONT SIZE="-1"><TT>msave</TT></FONT>.
+All these objects inherit from the class <FONT SIZE="-1"><TT>dr</TT></FONT>.
+
+Several additional quantities are computed and stored in the object.  These
+include:
+<FONT SIZE="-1">
+</FONT><PRE>
+&gt; names(i1)
+ [1] "formula"          "contrasts"        "xlevels"          "call"
+ [5] "ols.coef"         "ols.fit"          "weights"          "cols.used"
+ [9] "offset"           "estimate.weights" "terms"            "method"
+[13] "response.name"    "model"            "cases"            "evectors"
+[17] "evalues"          "numdir"           "raw.evectors"     "decomp"
+[21] "M"                "slice.info"
+</PRE><FONT SIZE="-1">
+</FONT>
+
+For example, to have access to the eigenvectors of <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">, type
+<PRE>
+&gt; i1$evectors
+                Dir1          Dir2        Dir3         Dir4
+Ht        0.01054752  0.0001569418 -0.10750718  0.009197952
+Wt        0.02374812 -0.0040912479  0.06248766 -0.019286750
+log(RCC)  0.99960915  0.9999614779  0.99211547  0.757087590
+WCC      -0.01031144 -0.0077640009 -0.01563290  0.652963858
+</PRE><FONT SIZE="-1">
+</FONT>
+while <FONT SIZE="-1"><code>i1$M</code></FONT> returns the value of the matrix <IMG
+ WIDTH="23" HEIGHT="22" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="$\hat{M}$">.  <FONT SIZE="-1"><TT>ols.fit</TT></FONT> returns ols
+fitted values (or weighted least squares fitted values, if appropriate)
+which are computed and used by some of the methods and summaries.
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html44"
+  HREF="node3.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/lib/latex2html/icons/next.png"></A> 
+<A NAME="tex2html42"
+  HREF="drdoc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/lib/latex2html/icons/up.png"></A> 
+<A NAME="tex2html36"
+  HREF="node1.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/lib/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html45"
+  HREF="node3.html">Methods available</A>
+<B> Up:</B> <A NAME="tex2html43"
+  HREF="drdoc.html">Dimension Reduction Regression in</A>
+<B> Previous:</B> <A NAME="tex2html37"
+  HREF="node1.html">Introduction</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Sandy Weisberg
+2002-01-10
+</ADDRESS>
+</BODY>
+</HTML>

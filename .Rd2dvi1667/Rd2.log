@@ -1,0 +1,154 @@
+This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2000.7.29)  27 FEB 2001 08:50
+**Rd2
+(Rd2.tex
+LaTeX2e <1999/12/01> patch level 1
+Babel <v3.6Z> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
+(/usr/share/texmf/tex/latex/base/book.cls
+Document Class: book 1999/09/10 v1.4a Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/bk10.clo
+File: bk10.clo 1999/09/10 v1.4a Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (Rd.sty
+Package: Rd 
+
+(/usr/share/texmf/tex/latex/base/ifthen.sty
+Package: ifthen 1999/09/10 v1.1b Standard LaTeX ifthen package (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/longtable.sty
+Package: longtable 1998/05/13 v4.09 Multi-page Table package (DPC)
+\LTleft=\skip43
+\LTright=\skip44
+\LTpre=\skip45
+\LTpost=\skip46
+\LTchunksize=\count88
+\LTcapwidth=\dimen103
+\LT@head=\box26
+\LT@firsthead=\box27
+\LT@foot=\box28
+\LT@lastfoot=\box29
+\LT@cols=\count89
+\LT@rows=\count90
+\c@LT@tables=\count91
+\c@LT@chunks=\count92
+\LT@p@ftn=\toks14
+)
+(/usr/share/texmf/tex/latex/tools/bm.sty
+Package: bm 1999/07/05 v1.0g Bold Symbol Support (DPC/FMi)
+\symboldoperators=\mathgroup4
+\symboldletters=\mathgroup5
+\symboldsymbols=\mathgroup6
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 137.
+LaTeX Info: Redefining \bm on input line 195.
+)
+(/usr/share/texmf/tex/latex/base/alltt.sty
+Package: alltt 1997/06/16 v2.0g defines alltt environment
+)
+(/usr/share/texmf/tex/latex/tools/verbatim.sty
+Package: verbatim 2000/01/07 v1.5m LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks15
+\verbatim@line=\toks16
+\verbatim@in@stream=\read1
+)
+(/usr/share/texmf/tex/latex/misc/url.sty
+Package: url 1999/03/02  ver 1.4  Verb mode for urls, email addresses, and file
+ names
+)
+\middle=\skip47
+\ldescriptionwidth=\skip48
+
+(/usr/share/texmf/tex/latex/base/fontenc.sty
+Package: fontenc 1999/12/08 v1.9x Standard LaTeX package
+
+(/usr/share/texmf/tex/latex/base/t1enc.def
+File: t1enc.def 1999/12/08 v1.9x Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 38.
+))
+(/usr/share/texmf/tex/latex/ae/ae.sty
+Package: ae 1998/11/17 1.0 Almost European Computer Modern
+
+(/usr/share/texmf/tex/latex/base/fontenc.sty
+Package: fontenc 1999/12/08 v1.9x Standard LaTeX package
+
+(/usr/share/texmf/tex/latex/base/t1enc.def
+File: t1enc.def 1999/12/08 v1.9x Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 38.
+)
+LaTeX Font Info:    Try loading font information for T1+aer on input line 96.
+
+(/usr/share/texmf/tex/latex/ae/t1aer.fd
+File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
+)))
+(/usr/share/texmf/tex/latex/ae/t1aett.fd
+File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
+))
+(/usr/share/texmf/tex/latex/base/makeidx.sty
+Package: makeidx 1999/09/17 v1.0l Standard LaTeX package
+)
+\@indexfile=\write3
+\openout3 = `Rd2.idx'.
+
+
+Writing index file Rd2.idx
+(Rd2.aux)
+\openout1 = `Rd2.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Try loading font information for T1+aess on input line 8.
+ (/usr/share/texmf/tex/latex/ae/t1aess.fd
+File: t1aess.fd 1997/11/16 Font definitions for T1/aess.
+) (Rd2.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 1.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 1.
+)
+\tf@toc=\write4
+\openout4 = `Rd2.toc'.
+
+ [1
+
+
+] [2] [3]
+Overfull \hbox (6.20987pt too wide) in paragraph at lines 142--144
+[]\T1/aer/m/n/10 Estimated re-gres-sion co-ef-fi-cients, ex-clud-ing the in-ter
+-cept, for the (weighted)
+ []
+
+[4] [5] [6] [7] [8] (Rd2.ind [9] [10
+
+
+]) (Rd2.aux) ) 
+Here is how much of TeX's memory you used:
+ 938 strings out of 25901
+ 9433 string characters out of 197578
+ 59122 words of memory out of 384000
+ 3887 multiletter control sequences out of 10000+15000
+ 30709 words of font info for 42 fonts, out of 400000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 37i,4n,26p,212b,424s stack positions out of 300i,100n,500p,50000b,4000s
+
+Output written on Rd2.dvi (10 pages, 19352 bytes).
