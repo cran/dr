@@ -23,5 +23,5 @@ dr.persp(object, which=1:2, h=c(0.1, 0.1), ...)
 \author{ Sanford Weisberg <sandy@stat.umn.edu>}
 
 
-\seealso{ \code{\link{dr}}, \code{\link{sm}} }
+\seealso{ \code{\link{dr}}, \code{\link{sm}[sm]} }
 \keyword{regression}

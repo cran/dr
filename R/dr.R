@@ -62,7 +62,7 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
       method = "sir", contrasts = NULL, offset = NULL, ...)
 {
 #this first section is copied from the lm function
-    mf <- match.call(expand.dots=F) #puts args in a standard form
+    mf <- match.call(expand.dots=FALSE) #puts args in a standard form
     mf$... <- NULL   # drop ...
     mf$method <- NULL # do not pass method to the model.frame
     mf$contrasts <- NULL # do not pass the contrasts to the model.frame
@@ -105,7 +105,7 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
     if(!is.null(w)){
         w<- length(w)*w/sum(w)  # scale weights to length n
         wsel<- w <= 0
-        if (any(wsel,na.rm=T)){
+        if (any(wsel,na.rm=TRUE)){
             w[wsel] <- NA # set zero weights to missing
             warning("Zero weight cases set to NA")}}
 #scale weights to add to n
@@ -113,13 +113,13 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
 #set the offset to be zero if null
     off <- if(is.null(offset)) rep(0,NROW(y)) else offset
 #dr.z centers, rotates, and get the rank.  z$z is full column rank
-    z <- dr.z(x,wts,center=T,rotate=T,decomp="qr") 
+    z <- dr.z(x,wts,center=TRUE,rotate=TRUE,decomp="qr") 
 #cols gives the columns that give a full-rank parameterization
     cols <- z$QR$pivot[1:z$QR$rank]
 #fitval are the WLS fitted values.  
 #The fitval are correct even with zero case weights
     ols.coef<-qr.coef(z$QR,sqrt(wts)*(y-off))
-    fitval <-off+sum(wts*y-off)/sum(wts)+dr.z(x,wts,rotate=F)$z %*% ols.coef
+    fitval <-off+sum(wts*y-off)/sum(wts)+dr.z(x,wts,rotate=FALSE)$z %*% ols.coef
 #update the object and then call the fit method
     z <- list(formula=formula,contrasts= attr(x, "contrasts"),
               xlevels=xlev, call = match.call (),
@@ -155,7 +155,7 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
       method = "sir", contrasts = NULL, offset = NULL, ...)
 {
 #this first section is copied from the lm function
-    mf <- match.call(expand.dots=F) #puts args in a standard form
+    mf <- match.call(expand.dots=FALSE) #puts args in a standard form
     mf$... <- NULL   # drop ...
     mf$method <- NULL # do not pass method to the model.frame
     mf$contrasts <- NULL # do not pass the contrasts to the model.frame
@@ -198,7 +198,7 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
     if(!is.null(w)){
         w<- length(w)*w/sum(w)  # scale weights to length n
         wsel<- w <= 0
-        if (any(wsel,na.rm=T)){
+        if (any(wsel,na.rm=TRUE)){
             w[wsel] <- NA # set zero weights to missing
             warning("Zero weight cases set to NA")}}
 #if weights.only=T, return only the value of w and exit; otherwise, continue
@@ -207,7 +207,7 @@ function (formula, data = list(), subset, weights=NULL, na.action=na.omit,
 model.matrix.dr <- function(object,...) {
     mat <- model.matrix(...)
     int <- match("(Intercept)", dimnames(mat)[[2]], nomatch=0)
-    if (int > 0) mat <- mat[, -int, drop=F]
+    if (int > 0) mat <- mat[, -int, drop=FALSE]
     mat}       
 
 
@@ -220,7 +220,7 @@ dr.fit <-function(object,numdir=4,tol=1.e-7,...){
     decomp <- "svd"
 # Use singular value decomposition for all calculations
     x <- dr.x(object)
-    z <- dr.z(x,object$weights,center=T,rotate=T,decomp="svd")
+    z <- dr.z(x,object$weights,center=TRUE,rotate=TRUE,decomp="svd")
     cols <- object$cols.used
 # compute M, with a different function for each method
     yvar <- dr.fit.y(object)
@@ -449,7 +449,7 @@ dr.directions <- function(object, ...) {UseMethod("dr.direction")}
 dr.direction <- function(object, ...) {UseMethod("dr.direction")}
 
 dr.direction.default <- 
-  function(object, which=1:object$numdir,norm=F,x=dr.x(object)) {
+  function(object, which=1:object$numdir,norm=FALSE,x=dr.x(object)) {
     ans <- (apply(x,2,function(x){x-mean(x)}) %*% object$evectors)[,which]
     ans <- if (norm) apply(ans,2,function(x){x/(sqrt(sum(x^2)))}) else ans
     if (length(which) > 1) dimnames(ans) <-
@@ -466,9 +466,9 @@ dr.direction.default <-
 
 
 plot.dr <- function
-      (x,which=1:x$numdir,mark.by.y=F,plot.method=pairs,...) {
+      (x,which=1:x$numdir,mark.by.y=FALSE,plot.method=pairs,...) {
  d <- dr.direction(x,which)
- if (mark.by.y == F) {
+ if (mark.by.y == FALSE) {
     plot.method(cbind(dr.y(x),d),labels=c(dr.y.name(x),colnames(d)),...)
     }
  else {plot.method(d,labels=colnames(d),col=markby(dr.y(x)),...)}
@@ -478,10 +478,10 @@ plot.dr <- function
 # point marking in S is not easy because the arg col is expected to be an
 # integer rather than a list
 #########################################################################
-#plot.dr <- function(object,which=1:object$numdir,mark.by.y=F,
+#plot.dr <- function(object,which=1:object$numdir,mark.by.y=FALSE,
 #                panel=points.col,colors,...) {
 # d <- dr.direction(object,which)
-# if (mark.by.y == F) {
+# if (mark.by.y == FALSE) {
 #    pairs(cbind(dr.y(object),d),labels=c(dr.y.name(object),colnames(d)),
 #                 ,panel,colors=colors,...)
 #    }
@@ -497,9 +497,9 @@ plot.dr <- function
 #     sel<- colors == unique.colors[j]
 #     points(x[sel],y[sel],col=unique.colors[j],...)}}}
 
-dr.coplot <- function(object,which=1:object$numdir,mark.by.y=F,...) {
+dr.coplot <- function(object,which=1:object$numdir,mark.by.y=FALSE,...) {
  d <- data.frame(dr.direction(object,which))
- if (mark.by.y == F){
+ if (mark.by.y == FALSE){
       d$yvar <- dr.y(object)
       coplot(yvar~Dir1|Dir2,data=d,...)}
     else
@@ -532,7 +532,7 @@ rotplot <- function(x,y,number=9,theta=seq(0,pi/2,length=number),...){
 dr.persp<-function(object,which=1:2,h=c(.1,.1),...){
  require(sm) # uses the sm library
  if (length(which) == 2){
-  d1<-dr.direction(object,which,norm=T)
+  d1<-dr.direction(object,which,norm=TRUE)
   y<-dr.y(object)
   sm.regression(d1,y,h=h,
                      xlab=dimnames(d1)[[2]][1],
@@ -772,7 +772,7 @@ dr.test.phdy<-function(object,nd) {
 # There are separate versions of this function for R and for Splus because
 # I do not know how to make a local function get an argument from the
 # function without passing an argument.
-cov.ew.matrix <- function(object,scaled=F) {
+cov.ew.matrix <- function(object,scaled=FALSE) {
   n <- dim(dr.x(object))[1]
   TEMPwts <- if (is.null(object$weights)) rep(1,n) else 
                   {n*object$weights/sum(object$weights)}
@@ -782,7 +782,7 @@ cov.ew.matrix <- function(object,scaled=F) {
 # centering X and then scaling the result so columns have length sqrt(wts).
 # This avoids computing two singular value decompositions
   v <- sqrt(n)* mat.normalize(
-         apply(dr.z(object,rotate=F)$z,2,"*",sTEMPwts) %*% object$evectors)
+         apply(dr.z(object,rotate=FALSE)$z,2,"*",sTEMPwts) %*% object$evectors)
   y <- dr.fit.y(object) # get the response
   y <- if (scaled) y-mean(y) else 1 # a multiplier in the matrix
   p <- dim(v)[2]
@@ -802,7 +802,7 @@ cov.ew.matrix <- function(object,scaled=F) {
 
 #translation of :general-pvalues method for phd in Arc
 dr.test2.phdres <- function(object,stats){
-  covew <- cov.ew.matrix(object,scaled=T)
+  covew <- cov.ew.matrix(object,scaled=TRUE)
   C <- .5/var(dr.fit.y(object))
   p <- length(stats)
   pval <- NULL
@@ -821,7 +821,7 @@ dr.test2.phdres <- function(object,stats){
     z}
    
 dr.indep.test.phdres <- function(object,stat) {
-  eval <- eigen(cov.ew.matrix(object,scaled=F),only.values=T)
+  eval <- eigen(cov.ew.matrix(object,scaled=FALSE),only.values=TRUE)
   pval<-wood.pvalue(.5*eval$values,stat)
 # report results
     z<-data.frame(cbind(stat,pval))
@@ -829,7 +829,7 @@ dr.indep.test.phdres <- function(object,stat) {
     z}
 
 
-wood.pvalue <- function (coef, f, tol=0.0, print=F){
+wood.pvalue <- function (coef, f, tol=0.0, print=FALSE){
 #Returns an approximation to P(coef'X > f) for X=(X1,...,Xk)', a vector of iid
 #one df chi-squared rvs.  coef is a list of positive coefficients. tol is used
 #to check for near-zero conditions.
@@ -988,10 +988,9 @@ dr.slices <- function(y,nslices) {
        ns <- 0
        for (j in unique(a$slice.indicator)) {
          b <- dr.slice.1d(y[a$slice.indicator==j,col],h[col])
-     a$slice.indicator[a$slice.indicator==j] <- 
-          a$slice.indicator[a$slice.indicator==j] +
-          10^(p-1)*b$slice.indicator
-     ns <- ns + b$nslices}
+         a$slice.indicator[a$slice.indicator==j] <- 
+                a$slice.indicator[a$slice.indicator==j] + 10^(col-1)*b$slice.indicator
+         ns <- ns + b$nslices}
        a$nslices <- ns }
 #recode unique values to 1:nslices and fix up slice sizes
     v <- unique(a$slice.indicator)
@@ -1004,8 +1003,9 @@ dr.slices <- function(y,nslices) {
   a}
 
 dr.slice.1d <- function(y,h) {
-  z<-unique(y)
-  if (length(z) >= h) dr.slice2(y,h) else dr.slice1(y,length(z),sort(z))}
+# z<-unique(y)
+# if (length(z) >= h) dr.slice2(y,h) else dr.slice1(y,length(z),sort(z))}
+  dr.slice2(y,h)}
 
 dr.slice1 <- function(y,h,u){
   z <- sizes <- 0
@@ -1037,6 +1037,8 @@ dr.slice2<-function(y,h)
        start<-sp[j]
        j<-j+1
      }
+# next line added 6/17/02 to assure that the last slice has at least 2 obs.
+  if (sp[j-1] == n-1) j <- j-1
   sp[j]<-n
   ans[or[1:sp[1]]] <- 1
   for (k in 2:j){ans[ or[(sp[k-1]+1):sp[k] ] ] <- k}
