@@ -445,8 +445,8 @@ dr.z <- function(x,weights=NULL,center=TRUE,rotate=TRUE,decomp="svd"){
 
 # recover the direction vectors
 
-dr.directions <- function(object, ...) {UseMethod("dr.direction")}
-dr.direction <- function(object, ...) {UseMethod("dr.direction")}
+dr.directions <- function(object, which, norm, x) {UseMethod("dr.direction")}
+dr.direction <- function(object, which, norm, x) {UseMethod("dr.direction")}
 
 dr.direction.default <- 
   function(object, which=1:object$numdir,norm=FALSE,x=dr.x(object)) {
@@ -661,10 +661,10 @@ function (x, digits = max(3, getOption("digits") - 3), ...)
 #
 ###################################################################
 switch(whichengine,
-  R= dr.test <- function(object, ...){ UseMethod("dr.test",object)},
-  s5=dr.test <- function(object, ...){ UseMethod("dr.test")},
-  s2k=dr.test <- function(object, ...){ UseMethod("dr.test")},
-  s6=dr.test <- function(object, ...){ UseMethod("dr.test")}
+  R= dr.test <- function(object, nd){ UseMethod("dr.test",object)},
+  s5=dr.test <- function(object, nd){ UseMethod("dr.test")},
+  s2k=dr.test <- function(object, nd){ UseMethod("dr.test")},
+  s6=dr.test <- function(object, nd){ UseMethod("dr.test")}
 )
 
 dr.test.default <-function(object, nd) {NULL}
@@ -951,22 +951,22 @@ function(x, digits = max(3, getOption("digits") - 3), ...)
 
 dr.permutation.test.statistic <- 
   switch(whichengine,
-  R= function(object,...)
+  R= function(object, values, nd, n, y)
                      {UseMethod("dr.permutation.test.statistic",object)},
-  s5=function(object,...)
+  s5=function(object, values, nd, n, y)
                      {UseMethod("dr.permutation.test.statistic")},
-  s2k=function(object,...)
+  s2k=function(object, values, nd, n, y)
                      {UseMethod("dr.permutation.test.statistic")},
-  s6=function(object,...)
+  s6=function(object, values, nd, n, y)
                      {UseMethod("dr.permutation.test.statistic")})
 
-dr.permutation.test.statistic.default <- function(object,values,nd,n,...){
+dr.permutation.test.statistic.default <- function(object,values,nd,n,y){
    n*rev(cumsum(rev(values)))[1:nd]}
 
-dr.permutation.test.statistic.phdy <- function(object,...){
+dr.permutation.test.statistic.phdy <- function(object,values,nd,n,y){
        dr.permutation.test.statistic.phd(object,...)}
-dr.permutation.test.statistic.phdres <- function(object,...){
-       dr.permutation.test.statistic.phd(object,...)}
+dr.permutation.test.statistic.phdres <- function(object,values,nd,n,y){
+       dr.permutation.test.statistic.phd(object,values,nd,n,y)}
 dr.permutation.test.statistic.phd <- function(object,values,nd,n,y){
    (.5*n*rev(cumsum(rev(values^2)))/var(y))[1:nd]}
 

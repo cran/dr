@@ -15,14 +15,13 @@
   Called by the dr function, and not usually accessed directly by the user.
 }
 \usage{
-dr.test(object, ...) 
+dr.test(object, nd) 
 dr.test.default(object, nd)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{object}{ dimension reduction regresion object }
   \item{nd}{ Maximum number of dimensions to test }
-  \item{...}{arguments passed to dr.test.default or its descendants}
 }
 
 \value{

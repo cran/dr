@@ -11,8 +11,8 @@
   in the original n dimensional space for plotting.}
 }
 \usage{
-dr.direction(object, ...)
-dr.directions(object, ...)
+dr.direction(object, which, norm, x)
+dr.directions(object, which, norm, x)
 dr.direction.default(object, which=1:object$numdir,norm=F,x=dr.x(object))
 }
 %- maybe also `usage' for other objects documented here.
