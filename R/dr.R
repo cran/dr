@@ -650,7 +650,7 @@ function (x, digits = max(3, getOption("digits") - 3), ...)
       cat(x$omitted,"\n")}
     if (!is.null(x$test)){
       cat("\nAsymp. Chi-square tests for dimension:\n")
-      print(as.matrix(x$test),digits)}
+      print(as.matrix(x$test),digits=digits)}
     invisible(x)
 }
 
