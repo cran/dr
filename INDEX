@@ -1,14 +1,11 @@
 ais                     Australian athletes data
 cosangle                Compute the cosine of the angle between a
                         vector and a subspace
-dr-internal             Internal dr functions
 dr                      Dimension reduction regression
 dr.coplot               Visualize dimension reduction regression using
                         a coplot
 dr.directions           Directions selected by dimension reduction
                         regressiosn
-dr.estimate.weights     Compute estimated weighting toward normality
-dr.fit                  Fit dimension reduction regression
 dr.indep.test.phdres    Test of independence for pHd based on
                         residuals
 dr.permutation.test     Dimension Reduction Regression Functions
@@ -17,8 +14,7 @@ dr.persp                Produce a perspective plot of dimension
 dr.slices               Divide a vector into slices of approximately
                         equal size
 dr.test                 Dimension reduction regression tests
-dr.x                    Inverse regression term matrix
-fullquad.fit            Fit a full second-order model
+dr.weights              Estimate weighting for elliptical symmetry
 givens.rotation         Create givens rotation matrix
 markby                  Produce a vector of colors/symbols to mark
                         points

@@ -1,49 +1,53 @@
 \name{dr}
 \alias{dr}
+\alias{dr.compute}
 \alias{plot.dr}
 \alias{print.dr}
 \alias{summary.dr}
 \alias{print.summary.dr}
-\alias{model.matrix.dr}
-\alias{dr.weights}
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Dimension reduction regression}
 \description{
  The function dr implements dimension reduction methods, including SIR, SAVE and pHd.
+'dr' calls 'dr.compute', so only the former will be needed by most users.
 }
 \usage{
-dr(formula, data=list(), subset, weights, na.action=na.omit, method="sir", 
-     contrasts=NULL,offset=NULL, ...)
-dr.weights(formula, data=list(), subset, weights, na.action=na.omit, method="sir", 
-     contrasts=NULL,offset=NULL, ...)
+dr (formula, data, subset, na.action = na.fail, weights, 
+    ...)
+    
+dr.compute (x, y, weights, method = "sir", ...)
  }
 
 \arguments{
  \item{formula}{a symbolic description of the model to be fit. The details of
-          the model are the same as for lm. }
+          the model are the same as for lm. Although factors may not be 
+          appropriate for dr methods, they are permitted.  Full rank models are
+          recommended, although rank deficient models are permitted.}
  \item{data}{ an optional data frame containing the variables in the model.
            By default the variables are taken from the environment from
            which `dr' is called.}
  \item{subset}{an optional vector specifying a subset of observations to be
           used in the fitting process.}
- \item{weights}{an optional vector of weights to be used where appropriate.}
+ \item{weights}{an optional vector of weights to be used where appropriate.  In the
+          context of dimension reduction methods, weights are used to obtain
+          elliptical symmetry, not constant variance; see \code{\link{dr.weights}}.}
  \item{na.action}{a function which indicates what should happen when the data
-          contain `NA's.  The default is `na.omit,' which will force
-          calculations on a complete subset of cases.}
+          contain `NA's.  The default is `na.fail,' which will stop calculations.
+          The option 'na.omit' is also permitted, but it may not work correctly when
+          weights are used.}
+ \item{x}{The design matrix}
+ \item{y}{The response vector or matrix}
  \item{method}{This character string specifies the method of fitting.  ``sir"
           specifies sliced inverse regression and ``save" specifies sliced
           average variance estimation.  ``phdy" uses principal hessian
           directions using the response as suggested by Li, and ``phdres" 
           uses the LS residuals as suggested by Cook. Other methods may be
-          added}
- \item{contrasts}{an optional list. See the `contrasts.arg' of
-          `model.matrix.default'.}
- \item{offset}{Set an offset or NULL}
- \item{\dots}{additional items that may be required or permitted by some 
-          methods.
+          added.}
+ \item{\dots}{For 'dr', arguments passed to 'dr.compute'.  For 'dr.compute', 
+          arguments required for particular dimension reduction method.
           \code{nslices} is the number of slices used by sir and save.
-	  \code{numdir} is the maximum number of directions to compute, with
-	  default equal to 4.}
+      \code{numdir} is the maximum number of directions to compute, with
+      default equal to 4. other methods may have other defaults.}
 }
 
 \details{
@@ -81,6 +85,12 @@ method for dr objects, based on a scatterplot matrix.
 \value{
 dr returns an object that inherits from dr (the name of the type is the
 value of the \code{method} argument), with attributes:
+  \item{x}{The design matrix}
+  \item{y}{The response vector}
+  \item{weights}{The weights used, normalized to add to n.}
+  \item{qr}{QR factorization of x.}
+  \item{cases}{Number of cases used.}
+  \item{call}{The initial call to 'dr'.}
   \item{M}{A matrix that depends on the method of computing.  The column space
 of M should be close to the central subspace.}
   \item{evalues}{The eigenvalues of M (or squared singular values if M is not
@@ -89,15 +99,11 @@ symmetric).}
 symmetric) ordered according to the eigenvalues.}
   \item{numdir}{The maximum number of directions to be found.  The output
 value of numdir may be smaller than the input value.}
-   \item{ols.coef}{Estimated regression coefficients, excluding the intercept,
-for the (weighted) LS fit.}
-   \item{ols.fit}{LS fitted values.}
-   \item{slice.info}{output from sir.slice, used by sir and save.}
-   \item{method}{the dimension reduction method used.}
-Other returned values repeat quantities from input.  
+   \item{slice.info}{output from 'sir.slice', used by sir and save.}
+   \item{method}{the dimension reduction method used.} 
 
-\code{dr.weights} returns a vector of weights NA substituted for estimated
-zero weights.  
+\code{dr.weights} returns a vector of weights estimated weights, scaled to add to
+the number of cases.  
 }
 
 \references{ The details of these methods are given by R. D. Cook 
@@ -123,20 +129,14 @@ attach(ais)  # the Australian athletes data
 #fit dimension reduction using sir
 m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
 summary(m1)
-
 # repeat, using save:
-
 m2 <- update(m1,method="save")
 summary(m2)
-
 # repeat, using phd:
-
 m3 <- update(m2, method="phdres")
 summary(m3)
-}
-
 # repeat, using weights:
-
-w1 <- dr.weights(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+w1 <- dr.weights(LBM~Wt+Ht+RCC+WCC, covmethod="mve")
 m4 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8, weights=w1)
+}
 \keyword{regression }%-- one or more ...

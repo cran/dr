@@ -1,0 +1,104 @@
+<html><head><title>R: Directions selected by dimension reduction regressiosn</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>Directions selected by dimension reduction regressiosn</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Dimension reduction regression returns a set of p orthogonal direction
+vectors each of length p, the first d of which are estimates a basis of a 
+d dimensional central subspace.  The function returns the estimated directions 
+in the original n dimensional space for plotting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+dr.direction(object, which, norm, x)
+dr.directions(object, which, norm, x)
+dr.direction.default(object, which=1:object$numdir,norm=F,x=dr.x(object))
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+a dimension reduction regression object </td></tr>
+<tr valign="top"><td><code>which</code></td>
+<td>
+select the directions wanted, default is all directions </td></tr>
+<tr valign="top"><td><code>norm</code></td>
+<td>
+if TRUE, direction vectors are normalized to length 1, otherwise
+their length is arbitrary</td></tr>
+<tr valign="top"><td><code>x</code></td>
+<td>
+select the X matrix, the default is dr.x(object)</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+additional arguments are passed to dr.direction.default</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+Dimension reduction regression is used to estimate a basis of the central
+subspace of a regression.  If there are p predictors, the dimension
+reduction regression object includes a p by p matrix of C of eigenvectors.
+This method returns (X-m1')C where m is the vector of column means of X.  If
+X is equal to the original matrix of predictors given by dr.x(object), then
+this gives the directions in the coordinates of the orginal n dimensional
+space.  These directions are used in graphical methods and elsewhere.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+Returns a matrix.  The same function has two names.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg &lt;sandy@stat.umn.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>
+See R. D. Cook (1998).  Regression Graphics.  New York:  Wiley.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="../../../doc/html/search/SearchObject.html?dr">dr</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+library(dr)
+data(ais)
+attach(ais)  # the Australian athletes data
+#fit dimension reduction using sir
+m1 &lt;- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+summary(m1)
+dr.directions(m1)
+</pre>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

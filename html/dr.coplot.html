@@ -1,0 +1,74 @@
+<html><head><title>R: Visualize dimension reduction regression using a coplot</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>Visualize dimension reduction regression using a coplot</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This function produces a coplot of the response versus specified
+directions in dimension reduction regression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+dr.coplot(object, which=1:object$numdir, mark.by.y=F, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+a dr object </td></tr>
+<tr valign="top"><td><code>which</code></td>
+<td>
+specify the indices of the directions to be plotted </td></tr>
+<tr valign="top"><td><code>mark.by.y</code></td>
+<td>
+if FALSE, plot the response versus the first specified
+direction conditioning on the second specified direction.  If TRUE, plot
+first direction versus second direction conditioning on the third
+direction, using the response as a marking variable to color the points.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+other arguments passed to coplot </td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+The function dr.permutation.test.statistic is not to be called by the user,
+but it computes the test statistic for each different type of dr object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+A coplot.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg &lt;sandy@stat.umn.edu&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="../../../doc/html/search/SearchObject.html?dr">dr</a></code>
+</p>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

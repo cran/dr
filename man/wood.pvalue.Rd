@@ -8,7 +8,7 @@ one df chi-squared rvs.  coef is a list of positive coefficients. tol is used
 to check for near-zero conditions.
 }
 \usage{
-wood.pvalue(coef, f, tol=0, print=F)
+wood.pvalue(coef, f, tol=0, print=FALSE)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

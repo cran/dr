@@ -1,44 +1,19 @@
-\name{dr-internal}
-\alias{dr.fit.M}
-\alias{dr.fit.M.mphd}
-\alias{dr.fit.M.mphdres}
-\alias{dr.fit.M.mqphd}
-\alias{dr.fit.M.msir}
-\alias{dr.fit.M.phd}
-\alias{dr.fit.M.phdq}
-\alias{dr.fit.M.phdres}
-\alias{dr.fit.M.phdy}
-\alias{dr.fit.M.save}
-\alias{dr.fit.M.sir}
-\alias{dr.fit.y.default}
-\alias{dr.fit.y.phd}
-\alias{dr.fit.y.phdq}
-\alias{dr.fit.y.phdres}
-\alias{dr.fit.y.phdy}
-\alias{dr.x.omitted}
-\alias{dr.y.name}
-\alias{make.Mhat.phdq}
-\alias{mat.normalize}
-\alias{permute}
-\alias{whichengine}
-%- Also NEED an `\alias' for EACH other topic documented here.
-\title{ Internal dr functions }
+\name{fullquad.fit}
+\alias{fullquad.fit}
+\title{ Internal function }
 \description{
-  ~~ A concise (1-5 lines) description of what the function does. ~~
+This function recovers a linear predictor from a dr object, and then uses
+lm to fit a full quadratic regression
 }
 \usage{
-dr.fit.M(object, ...)
-dr.fit.y(object )
-dr.x.omitted(z)
-dr.y.name(object)
-make.Mhat.phdq(pars)
-mat.normalize(a)
-permute(n)
+fullquad.fit(object)
 }
-\details{
-  These are not to be called by the user.
+\arguments{
+  \item{object}{ An object of type dr }
 }
+\value{
+  Returns an object of type lm.
 }
-\author{ Sanford Weisberg <sandy@stat.umn.edu>}
+\author{Sanford Weisberg }
 
-\keyword{ internal }
+\keyword{internal }% at least one, from doc/KEYWORDS

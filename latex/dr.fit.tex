@@ -1,0 +1,52 @@
+\Header{dr.fit}{Fit dimension reduction regression}
+\methalias{dr.fit.default}{dr.fit}
+\keyword{regression}{dr.fit}
+\keyword{internal}{dr.fit}
+\begin{Description}\relax
+Internal generic function that estimates the central subspace.
+\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.fit(object, numdir=4, ...)
+
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] dimension reduction regression object 
+\item[\code{numdir}] maximum number of dimensions to consider 
+\item[\code{tol}] tolerance passed to singular value decomposition 
+\item[\code{...}] other arguments passed to dr.fit.M 
+\end{ldescription}
+\end{Arguments}
+\begin{Details}\relax
+This will not
+typically be called directly by the user.  At present, the same dr.fit method works 
+for all dimension reduction methods implemented in this package, but one could
+potentially write a special dr.fit method if needed.
+
+The general outline of this method is as follows.  (1)  A matrix M is computed
+by a call to dr.fit.M(object,...), such that the columns of M are estimated to 
+fall in the subspace of interest (either the central subspace or the central mean
+subspace). (2)  If M is square, its eigenvalues and eigenvectors are computed; if
+M is not square, the eigenvalues of M'M are computed. (3) M was computed with scaled
+and centered predictors.  The eigenvectors are backtransformed to the original
+scale.
+\end{Details}
+\begin{Value}
+\begin{ldescription}
+\item[\code{evectors }] ordered eigenvectors that describe the estimates of the 
+dimension reduction subspace
+\item[\code{evalues }] ordered eigenvalues
+\item[\code{numdir}] number of eigenvalues
+\item[\code{raw.evectors}] eigenvectors of the rotated data
+\item[\code{M}] The kernel matrix.
+\end{ldescription}
+\end{Value}
+\begin{Author}\relax
+Sanford Weisberg <sandy@stat.umn.edu>
+\end{Author}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}
+\end{SeeAlso}
+

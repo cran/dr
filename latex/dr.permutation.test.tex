@@ -1,0 +1,59 @@
+\Header{dr.permutation.test}{Dimension Reduction Regression Functions}
+\methalias{dr.permutation.test.statistic}{dr.permutation.test}
+\alias{dr.permutation.test.statistic.default}{dr.permutation.test}
+\alias{dr.permutation.test.statistic.phd}{dr.permutation.test}
+\alias{dr.permutation.test.statistic.phdres}{dr.permutation.test}
+\alias{dr.permutation.test.statistic.phdy}{dr.permutation.test}
+\alias{print.dr.permutation.test}{dr.permutation.test}
+\alias{summary.dr.permutation.test}{dr.permutation.test}
+\keyword{regression}{dr.permutation.test}
+\begin{Description}\relax
+These functions require a dimension reduction regression object as input to
+produce output of various types.
+\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.permutation.test(object, npermute=50,numdir=object$numdir,permute.weights=TRUE)
+
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] a dimension reduction regression object created by dr
+\item[\code{npermute}] number of permutations to compute, default is 50
+\item[\code{numdir}] maximum permitted value of the dimension, with the default from
+the object
+\item[\code{permute.weights}] If TRUE, permute weights as well as data in the
+permutation test.  If FALSE, do not permute the weights.
+\end{ldescription}
+\end{Arguments}
+\begin{Details}\relax
+Approximates significance levels for tests of dimension using a permutation test.
+\end{Details}
+\begin{Value}
+Returns an object of type 'dr.permutation.test' that can be printed or
+summarized to give the summary of the test.
+\end{Value}
+\begin{Author}\relax
+Sanford Weisberg, sandy@stat.umn.edu
+\end{Author}
+\begin{References}\relax
+See www.stat.umn.edu/arc/addons.html, and then select the article
+on dimension reduction regression or inverse regression.
+\end{References}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}
+\end{SeeAlso}
+\begin{Examples}
+\begin{ExampleCode}
+data(ais)
+attach(ais)  # the Australian athletes data
+#fit dimension reduction regression using sir
+m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+summary(m1)
+dr.permutation.test(m1,npermute=100)
+plot(m1)
+dr.coplot(m1)
+\end{ExampleCode}
+\end{Examples}
+

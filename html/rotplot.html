@@ -1,0 +1,78 @@
+<html><head><title>R: draw many 2D projections of a 3D plot</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>draw many 2D projections of a 3D plot</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This function draws several 2D views of a 3D plot, sort of like a spinning
+plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+rotplot(x, y, number=9, theta=seq(0, pi/2, length = 9), ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+a matrix with 2 columns giving the horizontal axes of the full 3D
+plot.</td></tr>
+<tr valign="top"><td><code>y</code></td>
+<td>
+the vertical axis of the 3D plot.</td></tr>
+<tr valign="top"><td><code>number</code></td>
+<td>
+Number of 2D views of the 3D plot.</td></tr>
+<tr valign="top"><td><code>theta</code></td>
+<td>
+a list of rotation angles</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+additional arguments passed to coplot</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+For each value of theta, draw the plot of cos(theta)*x[,1]+sin(theta)*x[,2]
+versus y.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+returns a graph object.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg, sandy@stat.umn.edu
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+ data(ais)
+ attach(ais)
+ m1 &lt;- dr(LBM ~ Ht + Wt + WCC)  
+ rotplot(dr.direction(m1,which=1:2),dr.y(m1),col=markby(Sex))
+  </pre>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

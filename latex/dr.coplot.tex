@@ -1,0 +1,36 @@
+\Header{dr.coplot}{Visualize dimension reduction regression using a coplot}
+\keyword{regression}{dr.coplot}
+\begin{Description}\relax
+This function produces a coplot of the response versus specified
+directions in dimension reduction regression.
+\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.coplot(object, which=1:object$numdir, mark.by.y=FALSE, ...)
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] a dr object 
+\item[\code{which}] specify the indices of the directions to be plotted 
+\item[\code{mark.by.y}] if FALSE, plot the response versus the first specified
+direction conditioning on the second specified direction.  If TRUE, plot
+first direction versus second direction conditioning on the third
+direction, using the response as a marking variable to color the points.
+\item[\code{...}] other arguments passed to coplot 
+\end{ldescription}
+\end{Arguments}
+\begin{Details}\relax
+The function dr.permutation.test.statistic is not to be called by the user,
+but it computes the test statistic for each different type of dr object.
+\end{Details}
+\begin{Value}
+A coplot.
+\end{Value}
+\begin{Author}\relax
+Sanford Weisberg <sandy@stat.umn.edu>
+\end{Author}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}
+\end{SeeAlso}
+

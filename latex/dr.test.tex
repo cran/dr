@@ -1,0 +1,39 @@
+\Header{dr.test}{Dimension reduction regression tests}
+\methalias{dr.test.default}{dr.test}
+\methalias{dr.test.phd}{dr.test}
+\methalias{dr.test.phdq}{dr.test}
+\methalias{dr.test.phdres}{dr.test}
+\methalias{dr.test.phdy}{dr.test}
+\methalias{dr.test.sir}{dr.test}
+\alias{dr.test2.phdres}{dr.test}
+\keyword{regression}{dr.test}
+\begin{Description}\relax
+This method computes tests of dimension in dimension reduction regression.
+A separate method is needed for each dimension reduction regression method.
+Called by the dr function, and not usually accessed directly by the user.
+\end{Description}
+\begin{Usage}
+\begin{verbatim}
+dr.test(object, nd) 
+dr.test.default(object, nd)
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] dimension reduction regresion object 
+\item[\code{nd}] Maximum number of dimensions to test 
+\end{ldescription}
+\end{Arguments}
+\begin{Value}
+Returns test statistics and significance levels in a data frame.
+\end{Value}
+\begin{Author}\relax
+Sanford Weisberg, <sandy@stat.umn.edu>
+\end{Author}
+\begin{References}\relax
+R. C. Cook (1998).  Regression Graphics. New York:  Wiley.
+\end{References}
+\begin{SeeAlso}\relax
+\code{\Link{dr}}
+\end{SeeAlso}
+

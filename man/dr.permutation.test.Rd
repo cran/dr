@@ -26,9 +26,9 @@ the object}
  \item{permute.weights}{If TRUE, permute weights as well as data in the
  permutation test.  If FALSE, do not permute the weights.}
 }
-%\details{
-% ~~ If necessary, more details than the __description__  above ~~
-%}
+\details{
+Approximates significance levels for tests of dimension using a permutation test.  
+}
 \value{
 Returns an object of type 'dr.permutation.test' that can be printed or
 summarized to give the summary of the test.

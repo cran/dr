@@ -7,7 +7,7 @@ This function draws several 2D views of a 3D plot, sort of like a spinning
 plot.
 }
 \usage{
-rotplot(x, y, number=9, theta=seq(0, pi/2, length = 9), ...)
+rotplot(x, y, number=9, theta=seq(0, pi/2, length = number), ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

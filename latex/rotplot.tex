@@ -1,0 +1,40 @@
+\Header{rotplot}{draw many 2D projections of a 3D plot}
+\keyword{regression}{rotplot}
+\begin{Description}\relax
+This function draws several 2D views of a 3D plot, sort of like a spinning
+plot.
+\end{Description}
+\begin{Usage}
+\begin{verbatim}
+rotplot(x, y, number=9, theta=seq(0, pi/2, length = number), ...)
+\end{verbatim}
+\end{Usage}
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] a matrix with 2 columns giving the horizontal axes of the full 3D
+plot.
+\item[\code{y}] the vertical axis of the 3D plot.
+\item[\code{number}] Number of 2D views of the 3D plot.
+\item[\code{theta}] a list of rotation angles
+\item[\code{...}] additional arguments passed to coplot
+\end{ldescription}
+\end{Arguments}
+\begin{Details}\relax
+For each value of theta, draw the plot of cos(theta)*x[,1]+sin(theta)*x[,2]
+versus y.
+\end{Details}
+\begin{Value}
+returns a graph object.
+\end{Value}
+\begin{Author}\relax
+Sanford Weisberg, sandy@stat.umn.edu
+\end{Author}
+\begin{Examples}
+\begin{ExampleCode}
+ data(ais)
+ attach(ais)
+ m1 <- dr(LBM ~ Ht + Wt + WCC)  
+ rotplot(dr.direction(m1,which=1:2),dr.y(m1),col=markby(Sex))
+  \end{ExampleCode}
+\end{Examples}
+

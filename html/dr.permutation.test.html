@@ -1,0 +1,89 @@
+<html><head><title>R: Dimension Reduction Regression Functions</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>Dimension Reduction Regression Functions</h2>
+
+
+<h3>Description</h3>
+
+<p>
+These functions require a dimension reduction regression object as input to
+produce output of various types.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+dr.permutation.test(object, npermute=50,numdir=object$numdir,permute.weights=TRUE)
+
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+a dimension reduction regression object created by dr</td></tr>
+<tr valign="top"><td><code>npermute</code></td>
+<td>
+number of permutations to compute, default is 50</td></tr>
+<tr valign="top"><td><code>numdir</code></td>
+<td>
+maximum permitted value of the dimension, with the default from
+the object</td></tr>
+<tr valign="top"><td><code>permute.weights</code></td>
+<td>
+If TRUE, permute weights as well as data in the
+permutation test.  If FALSE, do not permute the weights.</td></tr>
+</table>
+
+<h3>Value</h3>
+
+<p>
+Returns an object of type 'dr.permutation.test' that can be printed or
+summarized to give the summary of the test.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg, sandy@stat.umn.edu
+</p>
+
+
+<h3>References</h3>
+
+<p>
+See www.stat.umn.edu/arc/addons.html, and then select the article
+on dimension reduction regression or inverse regression.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="../../../doc/html/search/SearchObject.html?dr">dr</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+data(ais)
+attach(ais)  # the Australian athletes data
+#fit dimension reduction regression using sir
+m1 &lt;- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+summary(m1)
+dr.permutation.test(m1,npermute=100)
+plot(m1)
+dr.coplot(m1)
+</pre>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

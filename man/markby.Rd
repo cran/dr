@@ -6,7 +6,7 @@
 This function creates marking of points by color or symbol for use in graphs.
 }
 \usage{
-markby(z, use="color", values=NULL, color.fn=rainbox, na.action="na.use")
+markby(z, use="color", values=NULL, color.fn=rainbow, na.action="na.use")
 }
 \arguments{
  \item{z}{a variable with a few distict values that will define the groups for

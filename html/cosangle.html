@@ -1,0 +1,66 @@
+<html><head><title>R: Compute the cosine of the angle between a vector and a subspace</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>Compute the cosine of the angle between a vector and a subspace</h2>
+
+
+<h3>Description</h3>
+
+<p>
+<code>cosangle1</code> returns the cosine of the
+angle between a vector vecs  and the subspace spanned
+by the columns of the matrix mat.  For cosangle, vecs can be a matrix, in
+which case cosangle1 is called for each column in vecs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+cosangle(mat, vecs)
+cosangle1(mat, vec)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>mat</code></td>
+<td>
+A matrix the provides the basis for a subspace</td></tr>
+<tr valign="top"><td><code>vecs</code></td>
+<td>
+A vector with the same number of rows as mat, or a matrix
+with the same number of rows as mat</td></tr>
+<tr valign="top"><td><code>vec</code></td>
+<td>
+A vector with the same number of rows as mat</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+<code>cosangle1</code> computes the cosine of the angle between vec and the orthogonal projection
+of vec onto the column space of mat.  <code>cosangle</code> repeats this computation
+for each column of vecs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+cosangle1 returns a single value and cosangle returns a vector.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg &lt;sandy@stat.umn.edu&gt;
+</p>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

@@ -1,0 +1,59 @@
+<html><head><title>R: Fit a full second-order model</title>
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+
+<h2>Fit a full second-order model</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This function fits an ordinary LS regression of a response on a full
+second order model, or returns the residuals from such a fit. Used in the
+phdq method in dr.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+fullquad.fit(x, y, w, ...)
+fullquad.residuals(...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+an n by p matrix of predictors</td></tr>
+<tr valign="top"><td><code>y</code></td>
+<td>
+an n vector of the response</td></tr>
+<tr valign="top"><td><code>w</code></td>
+<td>
+an n vector of positive weights or NULL</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+arguments passed to lm</td></tr>
+</table>
+
+<h3>Value</h3>
+
+<p>
+fullquad.fit returns an object of type lm.  fullquad.residuals returns a
+vector of n residuals.</p>
+
+<h3>Author(s)</h3>
+
+<p>
+Sanford Weisberg &lt;sandy@stat.umn.edu&gt;
+</p>
+
+
+
+<hr><div align="center"><a href="00Index.html">[Package Contents]</a></div>
+
+</body></html>

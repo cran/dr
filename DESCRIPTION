@@ -1,6 +1,6 @@
 Package: dr
-Version: 1.0.3
-Date:  2003/1/23
+Version: 2.0.0
+Date:  2004/10/12
 Title: Methods for dimension reduction for regression
 Author: Sanford Weisberg <sandy@stat.umn.edu>, 
 Maintainer: Sanford Weisberg <sandy@stat.umn.edu>
@@ -10,6 +10,9 @@ Description: Functions, methods, and datasets for fitting dimension
  R. D. Cook (1998), Regression Graphics, Wiley, New York.  Also included is
  code for computing permutation tests of dimension.  Adding additional
  methods of estimating dimension is straightforward.  One function depends
- on the lqs package.  Minor revision to be compatible with R 1.7.
+ on the lqs package.  Minor revision to be compatible with R 2.0.0, and
+ bug-fixes.  For documentation, see
+ http://www.jstatsoft.org/v07/i01/drdoc.pdf.
 License: GPL version 2 or newer
 URL: http://www.r-project.org
+Packaged: Tue Oct 12 17:13:59 2004; sandy

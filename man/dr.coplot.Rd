@@ -7,7 +7,7 @@
   directions in dimension reduction regression.
 }
 \usage{
-dr.coplot(object, which=1:object$numdir, mark.by.y=F, ...)
+dr.coplot(object, which=1:object$numdir, mark.by.y=FALSE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
