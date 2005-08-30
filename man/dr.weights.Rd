@@ -9,8 +9,8 @@
   possible.  This method is usually not called directly by the user.
 }
 \usage{
-(formula, data = list(), subset, na.action = na.fail, 
-    covmethod = "mve", nsamples=NULL, ...) 
+dr.weights(formula, data = list(), subset, na.action = na.fail, 
+    covmethod = "mve", sigma=1, nsamples=NULL, ...) 
 
 robust.center.scale(x, method,... )
 }
@@ -31,6 +31,7 @@ robust.center.scale(x, method,... )
   \item{nsamples}{The weights are determined by random sampling from a
   data-determined normal distribution.  This controls the number of samples.  The
   default is 10 times the number of cases.}
+  \item{sigma}{Scale factor, set to one by default}
   \item{x}{An \eqn{n \times p}{n by p} data matrix with no missing values}
   \item{method}{see covmethod above}
   \item{\dots}{Additional args are passed to \code{cov.rob}}
