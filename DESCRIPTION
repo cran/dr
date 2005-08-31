@@ -1,6 +1,6 @@
 Package: dr
-Version: 2.0.2
-Date:  2005/08/30
+Version: 2.0.3
+Date:  2005/08/31
 Title: Methods for dimension reduction for regression
 Author: Sanford Weisberg <sandy@stat.umn.edu>, 
 Maintainer: Sanford Weisberg <sandy@stat.umn.edu>
@@ -15,4 +15,4 @@ Description: Functions, methods, and datasets for fitting dimension
  http://www.jstatsoft.org/v07/i01/drdoc.pdf.
 License: GPL version 2 or newer
 URL: http://www.r-project.org
-Packaged: Tue Aug 30 09:07:33 2005; sandy
+Packaged: Wed Aug 31 08:37:05 2005; sandy

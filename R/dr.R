@@ -879,7 +879,7 @@ function (formula, data = list(), subset, na.action=na.fail,
     if (is.null(subset)) return(w) else {
 # find dimension of mf without subset specified
     mf1$subset <- NULL
-    w1 <- rep(NA,length=dim(eval(mf1, sysn.frame(sys.parent())))[1])
+    w1 <- rep(NA,length=dim(eval(mf1))[1])
     w1[subset] <- w
     return(w1)}}
 
