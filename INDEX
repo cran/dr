@@ -6,8 +6,7 @@ dr.coplot               Visualize dimension reduction regression using
                         a coplot
 dr.directions           Directions selected by dimension reduction
                         regressiosn
-dr.indep.test.phdres    Test of independence for pHd based on
-                        residuals
+dr.indep.test.phdres    Test of independence for pHd based on residuals
 dr.permutation.test     Dimension Reduction Regression Functions
 dr.persp                Produce a perspective plot of dimension
                         reduction regression objects.
