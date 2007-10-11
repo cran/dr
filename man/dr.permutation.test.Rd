@@ -1,36 +1,34 @@
 \name{dr.permutation.test}
 \alias{dr.permutation.test}
 \alias{dr.permutation.test.statistic}
-\alias{dr.permutation.test.statistic.default}
-\alias{dr.permutation.test.statistic.phd}
-\alias{dr.permutation.test.statistic.phdres}
-\alias{dr.permutation.test.statistic.phdy}
-\alias{print.dr.permutation.test}
-\alias{summary.dr.permutation.test}
 
-\title{ Dimension Reduction Regression Functions}
+\title{Permutation tests of dimension for dr}
 \description{
-These functions require a dimension reduction regression object as input to
-produce output of various types.
-}
+Approximates marginal dimension test significance levels for sir, save,
+and phd by sampling from the permutation distribution.}
 \usage{
-dr.permutation.test(object, npermute=50,numdir=object$numdir,permute.weights=TRUE)
+dr.permutation.test(object, npermute=50,numdir=object$numdir)
 
 }
-%- maybe also `usage' for other objects documented here.
+
 \arguments{
  \item{object}{a dimension reduction regression object created by dr}
  \item{npermute}{number of permutations to compute, default is 50}
- \item{numdir}{maximum permitted value of the dimension, with the default from
-the object}
- \item{permute.weights}{If TRUE, permute weights as well as data in the
- permutation test.  If FALSE, do not permute the weights.}
+ \item{numdir}{maximum permitted value of the dimension, 
+with the default from the object}
 }
+
 \details{
-Approximates significance levels for tests of dimension using a permutation test.  
+The method approximates significance levels of the marginal dimension
+tests based on a permutation test.  The algorithm:  (1) permutes the
+rows of the predictor but not the response; (2) computes marginal
+dimension tests for the permuted data; (3) obtains significane levels 
+by comparing the observed statsitics to the permutation distribution.
+
+The method is not implemented for ire.
 }
 \value{
-Returns an object of type 'dr.permutation.test' that can be printed or
+Returns an object of type \sQuote{dr.permutation.test} that can be printed or
 summarized to give the summary of the test.
 }
 \references{See www.stat.umn.edu/arc/addons.html, and then select the article
@@ -48,7 +46,6 @@ m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
 summary(m1)
 dr.permutation.test(m1,npermute=100)
 plot(m1)
-dr.coplot(m1)
 }
 
 \keyword{regression}%-- one or more ...

@@ -2,39 +2,62 @@
 \alias{dr.direction}
 \alias{dr.directions}
 \alias{dr.direction.default}
-%- Also NEED an `\alias' for EACH other topic documented here.
+\alias{dr.direction.ire}
+\alias{dr.basis}
+\alias{dr.basis.default}
+\alias{dr.basis.ire}
+
 \title{ Directions selected by dimension reduction regressiosn }
 \description{
-  Dimension reduction regression returns a set of p orthogonal direction
-  vectors each of length p, the first d of which are estimates a basis of a 
-  d dimensional central subspace.  The function returns the estimated directions 
-  in the original n dimensional space for plotting.}
-}
+  Dimension reduction regression returns a set of up to \eqn{p} orthogonal direction
+  vectors each of length \eqn{p}, the first \eqn{d} of which are estimates a basis of a 
+  \eqn{d} dimensional central subspace.  The function returns the estimated directions 
+  in the original \eqn{n} dimensional space for plotting.}
+
 \usage{
-dr.direction(object, which, norm, x)
-dr.directions(object, which, norm, x)
-dr.direction.default(object, which=1:object$numdir,norm=FALSE,x=dr.x(object))
+dr.direction(object, which, x)
+dr.directions(object, which, x)
+\method{dr.direction}{default}(object, which=1:object$numdir,x=dr.x(object))
+
+dr.basis(object,numdir)
+
+\method{dr.basis}{ire}(object,numdir=length(object$result))
 }
-%- maybe also `usage' for other objects documented here.
+
 \arguments{
-  \item{object}{ a dimension reduction regression object }
-  \item{which}{ select the directions wanted, default is all directions }
-  \item{norm}{if TRUE, direction vectors are normalized to length 1, otherwise
-  their length is arbitrary}
-  \item{x}{select the X matrix, the default is dr.x(object)}
-  \item{...}{additional arguments are passed to dr.direction.default}
+  \item{object}{ a dimension reduction regression object created by dr. }
+  \item{which}{ select the directions wanted, default is all directions.
+If method is \code{ire}, then the directions depend on the value of the
+dimension you select.  This method will assume the dimension is the
+maximum value of \code{which}. }
+  \item{numdir}{The number of basis vectors to return}
+  \item{x}{select the X matrix, the default is \code{dr.x(object)}}
 }
 \details{
-  Dimension reduction regression is used to estimate a basis of the central
-  subspace of a regression.  If there are p predictors, the dimension
-  reduction regression object includes a p by p matrix of C of eigenvectors.
-  This method returns (X-m1')C where m is the vector of column means of X.  If
-  X is equal to the original matrix of predictors given by dr.x(object), then
-  this gives the directions in the coordinates of the orginal n dimensional
-  space.  These directions are used in graphical methods and elsewhere.
+Dimension reduction regression is used to estimate a basis of the central
+subspace or mean central subspace of a regression.  If there are \eqn{p} 
+predictors, the dimension of the central subspace is less than or equal to
+\eqn{p}.  These two functions, \code{dr.basis} and \code{dr.direction}, 
+return vectors that describe the central subspace in various ways.
+
+Consder \code{dr.basis} first.  If you set \code{numdir=3}, for example, this
+method will return a \eqn{p} by 3 matrix whose columns span the estimated
+three dimensional central subspace.  For all methods except for \code{ire},
+this simply returns the first three columns of \code{object$evectors}.  For
+the \code{ire} method, this returns the three vectors determined by a 
+three-dimensional solution. Call this matrix \eqn{C}.  The basis is 
+determined by back-transforming from centered and scaled predictors to
+the scale of the original predictors, and then renormalizing the vectors
+to have length one.  These vectors are orthogonal in the inner
+product determined by Var(X).
+
+The \code{dr.direction} method return \eqn{XC}, the same space but now a
+subspace of the original \eqn{n}-dimensional space.  These vectors are
+appropriate for plotting.   
 }
 \value{
-  Returns a matrix.  The same function has two names.
+  Both functions return a matrix:  for \code{dr.direction}, the matrix has n rows and
+numdir columns, and for \code{dr.basis} it has p rows and numdir columns.
 }
 \references{ See R. D. Cook (1998).  Regression Graphics.  New York:  Wiley. }
 \author{Sanford Weisberg <sandy@stat.umn.edu> }
@@ -43,12 +66,11 @@ dr.direction.default(object, which=1:object$numdir,norm=FALSE,x=dr.x(object))
 \seealso{  \code{\link{dr}} }
 
 \examples{
-library(dr)
 data(ais)
-attach(ais)  # the Australian athletes data
 #fit dimension reduction using sir
-m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8)
+m1 <- dr(LBM~Wt+Ht+RCC+WCC, method="sir", nslices = 8, data=ais)
 summary(m1)
+dr.basis(m1)
 dr.directions(m1)
 }
 \keyword{ regression }% __ONLY ONE__ keyword per line

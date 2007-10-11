@@ -1,0 +1,1217 @@
+\documentclass{article}
+\usepackage{url,Sweave,html,alltt}
+%%\VignetteIndexEntry{Overview and Examples}
+\newcommand{\R}{{\normalfont\textsf{R}}{}}
+\renewcommand{\vec}{\mathrm{vec}}
+\newcommand{\vn}[1]{\mbox{{\em #1}}}
+\newcommand{\betahat}{\hat{\beta}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\Cov}{\mathrm{Var}}
+\newcommand{\arc}{{\em Arc}}
+\newcommand{\dcode}[1]{{\small{\tt #1}}}
+\newcommand{\dr}{{\tt dr}}
+\newcommand{\sir}{{\sffamily sir}}
+\newcommand{\ire}{{\sffamily ire}}
+\newcommand{\pire}{{\sffamily pire}}
+\newcommand{\save}{{\sffamily save}}
+\newcommand{\phd}{{\sffamily phd}}
+\newcommand{\phdy}{{\sffamily phdy}}
+\newcommand{\phdq}{{\sffamily phdq}}
+\newcommand{\phdres}{{\sffamily phdres}}
+\renewcommand{\span}{{\mathcal S}}
+\newcommand{\E}{\mbox{E}}
+\newcommand{\N}{\mbox{N}}
+\newcommand{\var}{\mbox{Var}}
+
+\newenvironment{references}{%
+  \section{References}%
+    \begin{list}%
+            {}%
+            {\setlength{\leftmargin}{.25in}\setlength{\itemindent}{-.25in}}}%
+   {\end{list}}
+
+\newcommand{\jasa} {{\it Journal of the American Statistical Association}}
+
+
+\title{The dr package}
+\author{Sanford Weisberg\\
+{\small \em School of Statistics, University of Minnesota,
+Minneapolis, MN 55455.}}
+\date{\today}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The \dr\ package for \R\ for {\em dimension reduction regression}
+was first documented in Weisberg (2002).  This is a revision of that
+article, to correspond to version 3.0.0 of \dr\ for \R\ added to
+CRAN (cran.r-project.org) in Fall 2007.
+
+Regression is the study of the dependence of a response variable $y$
+on a collection of $p$ predictors collected in $x$. In {\em
+dimension reduction regression}, we seek to find a few linearly
+independent linear combinations $\beta_1'x,\ldots,\beta_d'x$, such
+that all the information about the regression is contained in these
+$d$ linear combinations.  If $d$ is very small, perhaps one or two,
+then the regression problem can be summarized using simple graphics;
+for example, for $d=1$, the plot of $y$ versus $\beta_1'x$ contains
+all the regression information.  When $d=2$, a 3D plot contains all
+the information.  Formal estimation methods can additionally be used
+given the lower dimensional problem based on the few linear
+combinations.
+
+The primary goals of dimension reduction regression are determining
+the dimension $d$, and estimating $\beta_1, \ldots, \beta_d$, or
+more precisely the subspace of $\Re^p$ spanned by $\beta_1, \ldots,
+\beta_d$.  Several methods for these goals have been suggested in
+the literature and some of these are implemented in \dr. Methods
+implemented in the package include sliced inverse regression or
+\sir, sliced average variance estimates, or \save, principal Hessian
+directions, or \phd, and inverse regression estimation, or \ire. The
+first three of these methods estimate the span of the $\beta$s by
+examining the inverse regression problem of $x|y$, rather than the
+forward regression problem of $y|x$, and all estimate the $\beta$s
+as the solution of an eigenvalue problem. The method \ire\ is new in
+Version 3.0.0 and estimates a basis for the subspace of interest by
+minimizing a quadratic objective function.
+
+Determining $d$ is approached as a testing problem. {\em Marginal
+dimension tests} are used for a hypothesis of the form $d=d_0$
+versus an alternative $d>d_0$, without restriction on the subspaces
+involved other than their dimension.  The first of these tests was
+proposed by Li (1991) in his paper on \sir.  Added to Version 3.0.0
+are tests of {\em coordinate hypotheses}, proposed by Cook (2004),
+which effectively provides a test for elimination of predictors to
+reduce dimension, although the method is more general than this.
+These latter tests provide the basis for stepwise elimination of
+predictors.  These tests are available in \dr\ for methods \sir,
+\save, and \ire.
+
+Finally, the methods \sir, \save\ and \ire\ are extended to allow
+for inclusion of categorical predictors in $x$.
+\end{abstract}
+
+\section{Introduction}
+In the general regression problem, we have a response $y$ of
+dimension $k \ge 1$ and $p$-dimensional predictor $x$, and the goal
+is to learn about how the conditional distributions $F(y|x)$ change
+as $x$ varies through its sample space.  In parametric regression,
+we specify a known functional form for these conditional
+distributions, apart from a few parameters to be estimated. In
+nonparametric regression no assumptions are made about $F$, but
+progress is really only possible if the dimensions $p$ and $k$ are
+small.
+
+{\em Dimension reduction regression} is one intermediate possibility
+between the parametric and nonparametric extremes.  We assume
+without loss of information that the conditional distributions can
+be indexed by $d$ linear combinations, or for some probably unknown
+$p\times d$ matrix $B$
+\begin{equation}
+F(y|x) = F(y|B'x) \label{eq:eq1}
+\end{equation}
+or in words, all the information in $x$ about $y$ is contained in
+the $d$ linear combinations $B'x$. This representation always holds
+trivially, by setting $B=I$, the $p\times p$ identity matrix, and so
+the usual goal is to find the $B$ of lowest possible dimension for
+which this representation holds.  If (\ref{eq:eq1}) holds for a
+particular $B$, then it also holds for $B^*=BA$, where $A$ is any
+full rank matrix, and hence the unique part of the regression
+summary is the subspace that is spanned by the columns of $B$, which
+we denote $\span(B)$.  The choice of $B$ that gives $\span(B)$ of
+smallest dimension is called the {\em central subspace}. Cook (1998)
+provides a more complete introduction to these ideas, including
+discussion of when the central subspace exists and is unique.
+
+The \dr\ package for \R\ provides methods for this approach to
+regression problems.  The basic idea is to estimate both a dimension
+$d$, and a set of basis vectors $\betahat_1,\ldots,\betahat_d$ that
+are linearly independent and span $\span(B)$.
+
+For readers familiar with earlier versions of \dr, here is list of
+the additions to Version 3.0.0.  If you are new to the package, you
+may wish to skip to this list.
+\begin{description}
+\item[New methods]  Inverse regression estimates, Cook and Ni (2005)
+and Wen and Cook (2007) are specified in a call to \dr\ with
+\dcode{method="ire"},  as described in Section~\ref{sec:ire}. This
+method is different from the other methods in \dr\ in that the
+estimated directions minimize an objective function.  Other methods
+compute a matrix $M$ and then estimate a subspace by the span
+eigenvectors corresponding to the first few eigenvalues of
+$M$\footnote{It is possible to view the \sir\ method as minimizing
+an objective function as well, although this is not the way it was
+originally presented; Cook (2004)}.
+
+\item[Marginal dimension tests for \save]  Tests for the
+dimension hypotheses in \save\ were presented in Shao, Cook and
+Weisberg (2007), and are included in \dr.
+
+\item[Coordinate hypotheses]
+In previous versions of \dr, the only tests available were marginal
+dimension tests about the dimension of the central (mean) subspace,
+without actually specifying any characteristics of what that
+subspace might be.  Cook (2004) suggested both marginal and
+conditional tests, in which specific hypotheses can be tested. For
+example, one could test to see if the central (mean) subspace is
+orthogonal to a particular predictor. Cook described both marginal
+and conditional coordinate tests.  The marginal coordinate tests are
+available for \sir, \save\ and \ire, with and without categorical
+predictors.  Conditional coordinate tests are available for \sir\
+without categorical predictors, and for \ire\ with and without
+categorical predictors.  Conditional coordinate tests for other
+methods may be added to \dr\ in a later release.
+
+Based on the marginal coordinate tests, we could imagine a stepwise
+deletion of potential predictors from a pool of possible predictors.
+This is implemented for \sir, \save\ and \ire\ using the standard R
+function \dcode{drop1}. Since \dcode{step} in \R\ is not a generic
+function, a function called \dcode{dr.step} is included here.
+
+\item[Categorical predictors] Chiaromonte, Cook and Li (2002)
+suggested how dimension reduction methods could be extended to
+problems with categorical predictors.  This methodology is available
+in \dr\ using the \dcode{groups} keyword.  For example,
+\verb+group = ~Sex+
+used a one-sided formula to specify that the levels of a
+variable \dcode{Sex} provides a grouping variable. This keyword is
+recognized for \sir, Chiaromonte, Cook and Li (2002), \save, Shao,
+Cook and Weisberg (submitted), and for \ire, Wen and Cook (2007).
+\end{description}
+
+In addition to these major additions, several minor changes have
+been made as well.  Many of the methods require approximation of
+$p$-values for statistics distributed as a linear combination of
+$\chi^2$ random variables. The user may select to use either the
+Wood (1989) or Bentler and Xie (2000) approximation to a linear
+combination of Chi-squared random variables to approximation
+significance levels of many of the tests.
+
+The standard \dcode{update} method in \R\ can be used with \dr.
+Standard short-cuts for formulas can also be used.  For example, the
+function call \dcode{dr(ais)} will automatically select the first column
+of the data frame \dcode{ais} as the response and the remaining
+columns as predictors, using defaults for all other arguments.
+Similarly, \verb+dr(LBM~.,ais)+ will use \vn{LBM} as the response
+and all other columns as predictors.
+
+Several of the methods require approximating the response $Y$ by a
+discrete version by slicing into nonoverlapping slices.  The
+function \dcode{dr.slices} is used for this purpose, and has been
+improved to give better handling of ties. To correspond to the
+program \arc, \dcode{dr.slices.arc}, which is the old slicing
+function, is also available for use.
+
+
+\section{Generalities and notation}
+All the methods require a few underlying assumptions.  The following
+three are most common (Cook, 2004, Section 3):
+\begin{description}
+\item[Linearity condition]  This assumption concerns only the the
+marginal distribution of the predictors $x$.   If we write
+$P_{\span(B)}$ as the projection on the central subspace $\span(B)$,
+then we must have $\E(x|P_{\span(B)}x) = P_{\span(B)}x$.  A stronger
+condition that could be checked in practice is that $\E(a'x|b'x)$ is
+linear in $b'x$ for all vectors $a$ and $b$.  If $x$ is normal the
+condition is satisfied, but normality is much stronger than needed.
+\item[Constant covariance condition]  Some methods require
+conditions on second moments of the predictors as well that the
+matrix $\var(x|P_{\span(B)}x)$ is a nonrandom matrix.  This
+condition is also satisfied by $x$ normal, and is satisfied
+approximately if $x$ has an elliptically contoured distribution.
+\item[Coverage condition] This condition generally requires
+    that a method can recover all of the central subspace,
+    not just part of it.  Not all methods can satisfy this
+    condition, however.  Ordinary least squares regression
+    is a dimension reduction method if the linearity
+    condition is satisfied, but it can only recover at most
+    one basis vector in $\span(B)$.  Sliced inverse
+    regression can recover only directions associated with
+    the mean $\E(y|x)$ but not of higher moments.  In
+    addition, if the number of slices for \sir\ is less
+    than $d$, all directions cannot be recovered.
+\end{description}
+
+Suppose we have data $(x_i,y_i)$, for $i=1,\ldots,n$ that are
+independent and collected into a $n \times p$ matrix $X$ and an
+$n$-vector $Y$ if $k=1$ and a $n \times k$ matrix $Y$ if $k>1$.  A
+multivariate response is not implemented for \phd\ or \ire. In
+addition, suppose we have nonnegative weights $w_1,\ldots,w_n$ whose
+sum is $n$; if unspecified, we take all the $w_i=1$.  The weights
+are used to improve the elliptical symmetry of the (weighted)
+distribution of the $x_i$ and thereby satisfy the linearity
+condition at least approximately; see Section~\ref{sec:weights}.
+
+All the methods described here are invariant under location and
+scale change, and all start by replacing $X$ by a matrix $Z$ such
+that the columns of $Z$ have mean zero and identity covariance
+matrix.  One way to do the centering and scaling uses the QR
+decomposition.  Define $\bar{x} = \sum w_ix_i/n$ to be the vector of
+weighted column means, $W = \mathrm{diag}(w_i)$. We use the $QR$
+decomposition to find a matrix $Q$ with orthonormal columns and an
+upper triangular matrix $R$ such that
+\begin{equation}
+QR = W^{1/2}(X - 1\bar{x}') \mbox{ and } Z= \sqrt{n}Q \label{eq:z}
+\end{equation}
+Then the matrix $Z$ has column means zero and sample identity
+covariance matrix.  If $\hat{B}$ has columns that estimate a basis
+for the central subspace for the regression of $y|z$, then
+$R^{-1}\hat{B}$ provides a basis for the space the regression of
+$y|x$.
+
+With the exception of the \dcode{ire} method described in
+Section~\ref{sec:ire}, the methods implemented in \dr\ have the
+following general pattern.
+\begin{enumerate}
+\item
+The methods \sir, \save\ and \phd\ are based on study of the inverse
+regression problem of $x|y$ or $z|y$ rather than the forward
+regression problem of $y|x$ or $y|z$.  All three methods require the
+linearity condition, and possibly the constant covariance condition.
+They use the scaled and centered data $Z$ to find a matrix $\hat{M}$
+that is a consistent estimate of a population matrix $M$ with the
+property that $\span_z(M) \subseteq \span_z(B)$. For \sir, we
+estimate only vectors in the {\em central mean subspace}, Cook and
+Li (2002), which guarantees only that $\E(y|B'z)=\E(y|z)$, ignoring
+any information beyond the first moment; \save\ and \phd\ are more
+general.  If the coverage condition is assumed, than all of
+$\span_z(B)$ is recovered.
+
+Assuming the dimension of $\span_z(B)$ is $d$, a basis for
+$\span(B)$ in $X$-coordinates is $R^{-1}\hat{B}$, which can be used
+to form on orthonormal basis for this space in the original $p$
+dimensional coordinate system of the predictors.
+
+\item
+The tests concerning the dimension $d$ are called {\em marginal
+dimensional tests} and are available for \sir, \save, \ire\ and one
+version of \phd; details are given in the following sections or the
+references therein.  It is usual to do testing in a sequential
+fashion, first testing $d=0$ versus $d>0$, then testing $d\leq 1$
+versus $d>1$, and continue until a nonsignificant result is
+obtained.
+
+Also available are {\em coordinate tests}, in which we test to see
+if the central subspace is orthogonal to a prespecified subspace.
+These tests can be done marginally, with no assumptions about the
+dimension $d$, or for some methods conditionally, assuming $d$ is
+known. This is particularly useful for deciding is a predictor,
+which represents a one-dimensional subspace, can be removed from a
+model. This allows the use of stepwise deletion of variables, as
+will be discussed in Section~\ref{sec:mct}.
+
+\item
+If the matrix $\hat{B}$ has columns with basis vectors for the
+estimated central subspace, then $(X - 1\bar{x}')\hat{B}$ gives the
+$d$ linear combinations of the variables in the $n$-dimensional
+observation space; these are computed using \dcode{dr.directions},
+and can be used in graphical procedures or in other fitting methods.
+\end{enumerate}
+
+\section{The {\tt dr} function}
+The main function in the \dr\ package is also called \dr. Here are
+the arguments, with their defaults:
+\begin{verbatim}
+dr(formula, data, subset, group=NULL, na.action = na.fail,
+    weights,method = "sir", chi2approx="bx",...)
+\end{verbatim}
+The arguments \dcode{formula}, \dcode{data}, \dcode{subset},
+\dcode{na.action}, and \dcode{weights} are the save as the arguments
+of the same name with the standard \R\ function \dcode{lm}.  The
+other arguments are unique to \dr.
+
+The required \dcode{formula} is a two-sided formula with the
+response on the left side, or a matrix if the response is
+multivariate, and a set of predictors on the right side. Although
+any formula that is valid for \dcode{lm} can be used, the predictors
+are expected to all be continuous without any nesting or crossing. A
+typical formula might be \verb|y~x1+x2+x3| for a univariate
+response, or \verb|cbind(y1,y2)~x1+x2+x3| for a bivariate response.
+
+The argument \dcode{data} specifies an optional data frame for the
+variables.  The \dcode{subset} argument specifies which rows of the
+data are to be used in the analysis, as in \dcode{lm}.
+\dcode{na.action} is the missing value action; \dcode{na.omit}
+should also work.
+
+The \dcode{group} argument, if used, requires a one-sided formula
+that evaluates to a list of a small number of levels.  Dimension
+reduction is done for each combination of the grouping variables.
+For example, \verb+group=~Sex+ would fit separately for each
+\dcode{Sex}, and \verb|group=~Sex:AgeClass| would fit separately for
+each combination of \dcode{Sex} and \dcode{AgeClass}.  For this
+latter case, both \dcode{Sex} and \dcode{AgeClass} {\em must} be
+declared as factors.
+
+The methods generally require linearly related predictors, and this
+can often be achieved by transformation of predictors (see Cook and
+Weisberg, 1999, and the function \dcode{bctran} in the \R\ package
+\verb+alr3+), or by weighting the observations.  Weights can be
+computed using \dcode{dr.weights}, described in
+Section~\ref{sec:weights}.  The argument \dcode{weights} would
+usually either be \dcode{NULL} of the result of calling
+\dcode{dr.weights}.
+
+The \dcode{method} argument is used to select the particular method
+of computing dimension reduction. The default is \dcode{"sir"}, but
+see Table~\ref{tab:1} for other choices.  Each of these methods is
+described in later sections.
+
+\begin{table}
+\caption{Methods implemented in \dr.  ``Multivariate" is yes if the
+response can be multivariate.  ``Partial" is yes if conditioning on
+categorical predictors is allowed using the \dcode{group} argument.
+``Coord" is yes if coordinate tests are available.}\label{tab:1}
+\begin{tabular}{|lp{2.0in}|ccc|} \hline
+Name & Reference & Multivariate & Partial & Coord \\ \hline
+\sir\ & Li (1991), Chiaromonte, Cook and Li (2002) & Yes & Yes & Yes \\
+\save\ & Cook and Weisberg (1991); Shao, Cook and Weisberg (2007)
+& Yes & Yes & Yes \\
+\phdy\ & Li (1992), Cook (1998) & No & No & No \\
+\phdres\ & Cook (1998) & No & No & No \\
+\phdq\ & Li (1992) & No & No & No \\
+\ire\ & Cook and Ni (2006), Wen and Cook (2007) & No & Yes & Yes \\ \hline
+\end{tabular}
+\end{table}
+
+The ``\ldots'' allows for additional arguments to be passed to
+particular dimension reduction methods. For example, \sir\ is a
+slicing method and so an argument {\tt nslices} may be used. Another
+useful argument is \dcode{numdir}, which is set a maximum value for
+$d$.  The default is \dcode{numdir=4}.  These additional arguments
+are described in later sections where the methods are described.
+
+The argument \dcode{slice.info} used in earlier versions of \dr\ has
+been removed. A new argument \dcode{slice.function} has been added.
+If \dcode{slice.function=dr.slices.arc}, then the algorithm used by
+Arc for computing slices is used.  Otherwise, a newer algorithm
+given in the function \dcode{dr.slices} is used.
+
+An additional new argument is \dcode{chi2approx = c("bx","wood")}.
+The default value of \dcode{"bx"} will use the Bentler and Xie
+(2000) approximation to a linear combination of Chi-square random
+variables when needed for computing significance levels.  If
+\dcode{chi2approx="wood"}, then the Wood (1989) method, which was
+previously the default in \dr, is used.
+
+\section{SIR}\label{sec:sir}
+\subsection{Basics}
+
+Sliced inverse regression or \sir\ was proposed by Li (1991). We
+assume that data consists of $n$ rows $(y_i,x_i)$ for
+$i=1,\ldots,n$.  We write $z_i$ for the $i$-th row of the centered
+and scaled version of $x_i$, from (\ref{eq:z}).  We suppose that the
+response variable $y$ has $h$ distinct levels or values; if it does
+not have $h$ levels but $y$ is univariate, then the range of $y$ is
+sliced into $h$ non-overlapping {\em slices} so that the number of
+observations in each slice is approximately equal.  If $y$ is
+multivariate, $h$ slices are formed in a somewhat more complex way;
+see Section~\ref{sec:slice}.  The only difference between univariate
+and multivariate \sir\ is the way that slices are formed.
+
+Suppose that $\bar{z}_j$, for $j=1,\ldots,h$, is the mean of the
+$z_i$ for $i$ in the $j$th slice. The kernel matrix for \sir\ is
+\begin{equation}
+\hat{M} = \frac{1}{n} \sum g_j\bar{z}_j\bar{z}_j'
+\label{eq:sir}
+\end{equation}
+where $g_j$ is the sum of the weights in slice $j$, and the weights
+are always scaled so that $\sum w_i = n$.  If the dimension of the
+central (mean) subspace is $d$, then the estimated central mean
+subspace is the span of the $d$ eigenvectors corresponding to the
+$d$ largest eigenvalues of $\hat{M}$, translated back to
+$x$-coordinates.
+
+The default computational method using the \dr\ function is \sir.
+Here is an example of its use.
+<<a1,echo=FALSE>>=
+library(dr)
+opt <- options(width=66)
+@
+<<a11,echo=TRUE>>=
+data(ais)
+summary(s0 <- dr(LBM~log(SSF)+log(Wt)+log(Hg)+log(Ht)+log(WCC)+log(RCC)+
+  log(Hc)+log(Ferr),data=ais,slice.function=dr.slices.arc,nslices=8,
+  chi2approx="wood",numdir=4,method="sir"))
+@
+This output is not identical to the output for \sir\ obtained from
+previous versions of \dr\ because the defaults for forming slices
+have changed, and the labels to sections of the output have changes
+as well. We have set the arguments
+\dcode{slice.function=dr.slices.arc}, \dcode{nslices=8} and
+\dcode{chi2approx="wood"} to get results that agree with Table~5 in
+Cook (2004), apart from multiplication of some basis vectors by
+$-1$.
+
+The \dcode{summary} output is similar for all \dr\ methods. Basic
+information, like the fitting method, the formula, and the slice
+information, is printed.  The vectors collected into a matrix
+$\hat{B}$ in the section called \dcode{Estimated Basis Vectors for
+Central Subspace} are computed by taking the eigenvectors in the
+$z$-scale, backtransforming to the original $x$-scale as previously
+discussed, and then normalizing so each column has length one. These
+vectors are an estimated basis for $\span(B)$, and they are
+orthogonal relative to the inner product determined by
+$\widehat{\Cov(X)}$, so $\hat{B}'\widehat{\Cov(X)}\hat{B}$ is a
+diagonal matrix.
+
+
+Next, the corresponding eigenvalues are given, ordered largest to
+smallest.  The line marked \verb+R^2*(OLS|dr)+ is the square of the
+correlation between the linear combination obtained by the ols
+regression of the response on the predictors and the subspace
+spanned by the first direction, the first two directions, and so on.
+In this example, the correlation with \dcode{Dir1} is almost 1, so
+this direction is almost the same as ols.  Under the assumption of
+linearly related predictors, ols estimates a direction in the
+central subspace, so the large correlation is to be generally
+expected.
+
+For \sir, the marginal dimension tests have asymptotic $\chi^2$
+distributions, as suggested by Li (1991), who assumed that the
+marginal distribution of $X$ was normal.  Bura and Cook (2001) show
+that the same asymptotic distribution holds under the linearity and
+constant covariance conditions. The tests are customarily viewed
+sequentially, first testing $d=0$ versus $d>0$, then $d=1$ versus
+$d>1$, and continue until we get a nonsignificant result. For the
+example, we would tentatively conclude $d=2$ from these tests.
+
+\subsection{Coordinate hypothesis tests}\label{sec:mct}
+\subsubsection{Marginal coordinate tests}\label{sec:mctm} These tests
+were proposed by Cook (2004). Suppose that $\span(B)$ represents the
+central subspace with basis given by the columns of $B$. Coordinate
+tests allow testing hypotheses that the space $\span(B)$ is
+orthogonal to one (or more linear combinations) of the predictors;
+were this so, we could achieve dimension reduction simply by
+dropping these predictors.
+
+Define a {\em hypothesis matrix} $H$, and under the null hypothesis
+we have that all vectors in $\span(B)$ can be represented as linear
+combinations of the columns of $H$, or if $P_H$ is the projection on
+$H$, the null and alternative hypotheses are $(I-P_H)B=0$ versus
+$(I-P_H)B \neq 0$. The method \dcode{dr.coordinate.test} will
+compute the appropriate test.  Cook (2004) proposed two approaches
+to testing this hypothesis, the {\em marginal} approach in which we
+assume nothing about the dimension $d$, and the {\em conditional}
+approach in which we assume that $d$ is known.
+
+To do a test the user must specify $H$, but \dr\ includes automatic
+tools to make this easier for the most common coordinate hypotheses.
+For example,
+<<a2,echo=TRUE>>=
+dr.coordinate.test(s0,hypothesis=~.-log(RCC))
+@
+The null hypothesis is specified by the formula given in the
+argument \dcode{hypothesis}.  In this case, the null hypothesis
+is that $\span(B)$ can be expressed as a linear combination of
+all the predictors (determined by the ``\verb+\~.+'') except
+for $\log(\vn{Hg})$.  The function recognizes that
+\dcode{hypothesis} is a formula and called the function
+\dcode{coord.hyp.basis} to generate the $H$ matrix.
+Alternatively, the user can provide a matrix with $p$ rows and
+$p^*$ columns, where $p$ is the number of predictors, and
+$p^*<p$ is the dimension of the hypothesis space. See the
+documentation for \dcode{coord.hyp.basis} for details. Cook
+provided several ways of estimating the $p$-value, depending on
+the assumptions made.  We present the most general
+approximation that requires the fewest assumptions.
+%Adding the argument
+%\dcode{pval="restricted"} will use more assumptions to get the
+%$p$-value.
+
+\subsubsection{Conditional coordinate tests}\label{sec:mctc}
+These tests are of the same hypothesis as in Section~\ref{sec:mctm},
+except we condition on a known value $d$ for the overall dimension.
+The same function is used for the computation, except that the
+argument \dcode{d} is set to the hypothesized dimension.
+<<a2,echo=TRUE>>=
+dr.coordinate.test(s0,hypothesis=~.-log(RCC),d=2)
+@
+We see that the outcome of the test can be quite different when we
+condition on the dimension.  Conditional coordinate tests are
+available only for \sir, \ire, and \ire\ with categorical
+predictors.
+
+\subsection{Backward elimination}\label{sec:be}
+The function \dcode{dr.coordinate.test} is used in the standard \R\
+function \dcode{drop1} to examine dropping each predictor in turn.
+<<a2,echo=TRUE>>=
+m0 <- drop1(s0,update=TRUE)
+@
+The result of using this function is another \dr\ object obtained by
+dropping the predictor with the largest $p$-value.    This is the
+basis for stepwise fitting.  If \dcode{update=FALSE}, then refitting
+\dr\ is skipped.
+
+The function \dcode{dr.step(object,scope,d,stop)} calls
+\dcode{drop1} repeatedly, each time dropping the variable with the
+largest $p$-value according to the marginal coordinate test, or the
+conditional coordinate test (for \ire\ or for \sir\ or \save\
+without categorical predictors) if a non-null value of \dcode{d} is
+specified. The documentation for these functions given more
+details\footnote{The standard function \dcode{step} in \R\ is not a
+generic function and so it can't be used with \dr.}. The argument
+\dcode{scope} is a one-sided formula listing predictors that are
+never deleted.  The argument \dcode{d} is the dimension of the
+central subspace for \ire\ with or without categorical predictors,
+or for \sir\ without categorical variables. The algorithm continues
+until the number of variables remaining is equal to the maximum
+dimension set by the argument \dcode{numdir} used in the call the
+\dr, which is 4 by default, or until the $p$-value for the next
+variable to be removed is less than \dcode{stop}.  The default for
+\dcode{stop} is 0.  As an example, the output below will delete
+predictors one at a time as long as the largest $p$-value exceeds
+0.20.  The variable \dcode{log(Wt)} will never be deleted.
+<<echo=TRUE>>=
+s1a <- dr.step(s0,scope=~log(Wt),stop=0.20)
+@
+
+\subsection{Categorical predictors and partial SIR}\label{sec:catpred}
+Suppose we have a categorical predictor or grouping variable $G$
+with $g$ levels.  Chiaromonte, Cook and Li (2002) described how such
+a categorial predictor could be included in a dimension reduction
+regression problem.  The basic idea is to divide the problem into
+$g$ regression problems, and define the central subspace to the the
+union of the subspaces for the regression problems $(y|x,G=1),
+(y|x,G=2),\ldots,(y|x,G=g)$.  Chiaromonte {\em et al.} called this
+{\em partial sir}.
+
+In the context of \sir, we can estimate a matrix $\hat{M}_g$ of the
+form (\ref{eq:sir}) separately for of the $g$ levels of $G$, combine
+them, and then estimate the central subspace from the eigenvectors
+corresponding to larger eigenvalues of the combined $\hat{M}$. Using
+the ideas in Cook (2004), Y. Shao has provided marginal and
+conditional coordinate hypothesis tests for partial \sir, which are
+included in \dr\ but are as yet unpublished.
+
+Partial \sir\ is fit in \dr\ using by adding an argument
+\dcode{group} to the call.  The value of \dcode{group} should be a
+one-sided formula. For example, if \dcode{Sex} was a factor with two
+levels and \dcode{AgeClass} a factor with three levels, then
+\dcode{group=~Sex} would condition on \dcode{Sex}, and
+\dcode{~Sex:AgeClass} would condition on all possible non-empty
+combinations of \dcode{Sex} and \dcode{AgeClass}.  An additional
+argument \dcode{pool} is also available on the call to \dcode{dr}.
+If \dcode{pool=TRUE}, then a pooled estimate of the variance of $X$
+is used in each of the $g$ groups to compute the standardized
+predictors.  The default is \dcode{pool=FALSE}, in which the
+variance is estimated separately in each group.  Chiaromonte {\em et
+al.} used the former choice to get the marginal dimension tests,
+while Shao uses the latter choice to get the coordinate hypothesis
+tests.
+<<echo=TRUE>>=
+summary(s1 <- update(s0, group=~Sex))
+@
+
+\subsection{Accessor functions}\label{sec:access}
+Several accessor functions can be applied to \dr\
+objects\footnote{If you type a command like \dcode{m1 <-
+dr(arguments)}, then \dcode{m1} is an object.} to get additional
+information.  These functions apply for \sir, \save, \phd, or \ire.
+\begin{verbatim}
+dr.x(object)
+dr.y(object)
+dr.z(object)
+dr.wts(object)
+\end{verbatim}
+These functions return, respectively, the $X$ matrix the response
+$Y$, the scaled $Z$ matrix (but not for partial \sir\ or partial
+\save), and the weights.
+\begin{verbatim}
+dr.test(object,numdir)
+\end{verbatim}
+Returns the marginal dimension tests for all methods for which these
+are available.
+\begin{verbatim}
+dr.coordinate.test(object,hypothesis,d)
+\end{verbatim}
+Returns the coordinate test for the hypothesis given by the
+one-sided formula \dcode{hypothesis}.  If $d$ is set and the method
+is either \sir, \ire, or \ire\ with categorical predictors, the test
+is conditional on the dimension of the central subspace; otherwise,
+the test is marginal.
+\begin{verbatim}
+drop1(object,d=NULL,update=FALSE)
+\end{verbatim}
+Calls \dcode{dr.coordinate.test} repeatedly to fit models that drop
+each predictor in turn.
+\begin{verbatim}
+dr.basis(object,numdir=4)
+dr.evalues(object)
+\end{verbatim}
+This function returns the first \dcode{numdir} basis vectors for the
+estimated central subspace (orthogonalized using the QR
+decomposition if \dcode{orth=TRUE}).  The function
+\dcode{dr.evalues} returns the eigenvalues for \sir, \save, and
+\phd.
+\begin{verbatim}
+dr.directions(object, which=c(1,2,3,4), x=dr.x(object))
+\end{verbatim}
+Let $\hat{B}$ be the columns of the estimated basis for the central
+subspace selected by the list \dcode{which}, and $X_1$ be the matrix
+specified by the argument \dcode{x}, centered to have mean zero in
+each column.  Then this function returns $X_1\hat{B}$.  If \dcode{x}
+has its default values, then
+$\hat{B}'X_1'\widehat{\Cov(X)}X_1\hat{B}$ is a diagonal matrix, so
+the columns of $X_1\hat{B}$ are orthogonal in the inner product
+determined by $\widehat{\Cov(X)}$.
+
+These values
+are very useful in plotting.
+\begin{verbatim}
+plot(object,which=1:object$numdir,mark.by.y=FALSE,
+     plot.method=pairs,...)
+\end{verbatim}
+This is the plot method for \dr, which extracts by default the first
+\dcode{numdir} direction vectors and the response, and plots them
+using the \dcode{plot.method}, which by default is \dcode{pairs}.
+
+
+\section{SAVE}\label{sec:save}
+The method \save, Cook and Weisberg (1991), is more comprehensive
+than \sir\ as it can estimate vectors that depend on both mean and
+variances changes between slices.
+
+As with \sir, we slice the range of $y$ into $h$ slices, but rather
+than compute the within-slice mean we compute within-slice
+covariance matrices.  If $C_i$ is the weighted within slice sample
+covariance matrix in slice $i$ in $z$-scale, then the matrix
+$\hat{M}$ is given by
+\[
+\hat{M} = \frac{1}{n}\sum g_j(I-C_j)^2
+\]
+where $g_j$ is the sum of the weights in slice $j$; if all weights
+are equal, then the $g_j$ are just the number of observations in
+each slice. \save\ looks at second moment information and may miss
+first-moment information, particularly it may miss linear trends.
+<<a2,echo=T>>=
+s2 <- update(s0,method="save")
+summary(s2)
+@
+As demonstrated here, the \dcode{update} function can be used with
+\dr\ objects. Shao, Cook and Weisberg (2007) have provided marginal
+dimension tests based on \save. Two $p$-values are available: if we
+assume predictors are normally distributed, then the test is
+asymptotically Chi-squared with df given in the column
+\dcode{df(Nor)}, and $p$-value in the column \dcode{p.val(Nor)}. The
+column \dcode{p.val(Gen)} is based on the weaker assumption that the
+predictors are linearly related but not necessarily normal.
+
+As with \sir, marginal coordinate tests can be computed with the
+function \dcode{dr.coordinate.test}. The functions \dcode{drop1} and
+\dcode{dr.step}, described in Section~\ref{sec:be} can be used as
+well.
+<<save>>=
+drop1(s1,update=FALSE)
+@
+As with \sir\ categorial predictors can be used with \save; see
+Section~\ref{sec:catpred}.
+<<echo=TRUE>>=
+summary(s3 <- update(s2,group=~Sex))
+@
+
+\section{Principal Hessian direction}\label{sec:phd}
+Principal Hessian direction methods were originally proposed by Li
+(1992).  These methods are much more complicated to use and to
+interpret responses than the other methods in the \dr\ package. The
+\phd\ methods are unchanged from earlier versions of \dr.
+
+The \phd\ methods are not based on slicing, but rather on the sample
+Hessian matrix.
+\begin{equation}
+\hat{M} = \frac{1}{n}\sum_{i=1}^n w_i f_i z_iz_i' \label{eq2}
+\end{equation}
+In this equation the $z_i$ are from (\ref{eq:z}), the $w_i$ are the
+weights.  Different choices of the $f_i$ correspond to variations of
+the \phd\ method.  The central subspace in $z$-scale is estimated by
+the eigenvectors corresponding to the larger eigenvalues of
+$\hat{M}$ in (\ref{eq2}).  Tests are based on sums of the smaller
+eigenvalues of $\hat{M}$.
+
+\subsection{Response based pHd}
+Seting $f_i = y_i$ gives response based pHd, obtained in \dr\ using
+\dcode{method="phdy"}.  This is the method proposed by Li, and is
+the most straightforward to use.  However, Cook (1998, Chapter 12)
+shows that tests based on this choice for $f$ proposed by Li are not
+correct, and no tests for dimension are available using this method.
+
+\subsection{Residual based pHd}
+Cook (1998, Chapter 12) suggests setting $f_i$ to be the residuals
+from the ols regression of $y$ on $x$.  This method is called
+\dcode{method="phdres"} in \dr.  Cook shows that tests of dimension
+based on this choice are correct, but the hypotheses concern a
+subspace other than the central subspace for $y|x$; see Cook (1998,
+Chapter 12) for details.
+
+Output for \phd\ is again similar to \sir, except for the tests.  Here is
+the output for the same setup as before, but for method \phdres:
+<<echo=TRUE>>=
+summary(s2 <- update(s0,method="phdres"))
+@
+The eigenvectors and eigenvalues are as for \sir\ and \save. The
+test statistics are based on the eigenvalues.  The column of tests
+called ``Normal theory" were proposed by Li (1992) and require that
+the predictors are normally distributed. These statistics are
+asymptotically distributed as Chi-square, with the degrees of
+freedom shown.
+
+When the method is \phdres\, additional tests are provided. Since
+this method is based on residuals, it gives tests concerning the
+central subspace for the regression of the residuals on $X$ rather
+than the response on $X$.  The subspace for this residual regression
+may be, but need not be, smaller than the subspace for the original
+regression. For example, the column marked ``Indep. test" is
+essentially a test of $d=0$ versus $d>0$ described by Cook (1998)
+for the residual regression.  Should the significance level for this
+test be large, we might conclude that the residual regression
+subspace is of dimension zero.  From this we have two possible
+conclusions: (1) the dimension of the response regression may be 1
+if using the residuals removed a linear trend, or (2) the dimension
+may be 0 if the residuals did not remove a linear trend.
+
+Similarly, if the significance level for the independence test is small, then
+we can conclude that the dimension is at least 1.  It could be one if the
+method is picking up a nonlinear trend in the OLS direction, but it will be
+2 if the nonlinearity is in some other direction.
+
+The independence test and the final column, also from Cook (1998),
+use the same test statistic, but different distributions based on
+different assumptions. Significance levels are obtained by comparing
+the statistic to the distribution of a random linear combination of
+Chi-square statistics, each with one df.  These statistics do not
+require normality of the predictors.
+
+\section{Inverse regression estimation}\label{sec:ire}
+This discussion of inverse regression estimation is more or less
+self contained, and uses somewhat different notation from earlier
+sections.
+\subsection{Estimation}
+All methods fit by \dr\ are {\em location and scale invariant},
+and so for the purpose of testing, we can use any linear
+transformation of the predictors we like.  In particular if $X$ is
+the $n\times p$ matrix of predictors, and $1_n$ is an $n$-vector
+of ones, we can compute the QR factorization,
+\[
+(1_n, X) = (Q_0,Q)\left(\begin{array}{cc}
+R_0&R_{01}\\0&R\end{array}\right)\label{eq:qr}
+\]
+and replace $X$ by $\sqrt{n}Q$ in all computations concerning
+objective functions and tests.  For quantities that are coordinate
+dependent, like coordinate tests, and subspace bases,
+back-transformation to $X$-scale is done as indicated below.  All
+formulas given in this article are in the simpler $QR$ scale.
+
+The data we use consists of the matrix $\sqrt{n}Q$ with rows $q_i'$
+and the response vector has elements $Y_i$; we have not implemented
+a multivariate response version. We assume that $Y$ is discrete with
+$h$ distinct values $1,\ldots,h$; if $Y$ is continuous, we
+discretize it into these $h$ distinct values by slicing and number
+these from 1 to $h$; see Cook and Ni (2005, Section 2.1). \dr\
+provides two functions for slicing: \dcode{dr.slices.arc} uses the
+same algorithm that is used in Arc, while the default
+\dcode{dr.slices} uses an algorithm that is better at handling ties.
+The former should be used for comparison to Arc, but the latter is
+recommended in general.
+
+If $\delta(Y_i=y)$ is the indicator function equal to one if $Y_i=y$
+and zero otherwise, then define
+\begin{eqnarray}
+n_y &=& \sum \delta(Y_i=y) \\
+f_y &=& n_y/n \\
+\hat{\xi}_y &=& (1/n_y) \sum_j \delta(Y_i=y) q_i\\
+\hat{\xi} &=& (\hat{\xi}_1 ,\ldots, \hat{\xi}_h)
+\end{eqnarray}
+The vector $\hat{\xi}_y$ is the mean of the $q_i$ for which
+$\delta(Y_i=y)$, the ``slice mean'', and $\hat{\xi}$ is the $p\times
+h$ matrix of slice means.
+
+Under assumptions discussed by Cook and Ni (2005, Section 2.1), the
+columns of $\hat{\xi}$ estimate vectors in the central subspace.
+Sliced inverse regression, for example, estimates the central
+subspace by the span the the eigenvectors of $\hat{\xi}\hat{\xi}'$
+corresponding to the $d$ largest eigenvalues. In contrast, inverse
+regression estimation will estimate the span of the central subspace
+using the columns of the $p\times d$ matrix $B$ determined by
+minimizing the following objective function (see Cook and Ni, 2005,
+equation 2):
+\begin{equation}
+F_d(B,C) = \left(\vec(\hat{\xi}\diag(f_y)A_n)-\vec(BC)\right)' V_n
+\left(\vec(\hat{\xi}\diag(f_y)A_n)-\vec(BC)\right) \label{eq:crit}
+\end{equation}
+The matrix $\diag(f_y)A_n$ is required to convert vectors in
+$\hat{\xi}$ to a fixed coordinate system; in \dr, following Cook
+and Ni (2005), $A_n$ is obtained from the \R\ command
+\begin{verbatim}
+An <- qr.Q(qr(contr.helmert(h)))
+\end{verbatim}
+where $h$ is the number of slices. Thus $A_n$ is an $h \times
+(h-1)$ matrix whose columns are orthogonal to each other and to
+$1_h$. Alternatively, $A_n$ could be defined as any $h \times
+(h-1)$ orthogonal matrix with orthogonal columns that spans the
+same space; this would simply change coordinates and $C$, but
+leave $B$ unchanged.  The matrix $V_n$ is a positive definite
+symmetric inner product matrix. The optimal choice for $V_n$ is
+the inverse of the asymptotic variance of
+$\vec(\hat{\xi}\diag(f_y)A_n))$, and an estimate of this is used
+in the \ire\ method in \dr.
+
+Minimization of (\ref{eq:crit}) is done over both $B$ and $C$.  The
+minimizing value of $C$ is of no interest because it depends on the
+coordinates determined by $A_n$.  The column space of the $p \times
+d$ matrix $B$ provides the estimate of the central subspace assuming
+it is of dimension $d$.
+
+Computations use an alternating algorithm, which is likely to
+converge at only a linear rate, so good starting values can be
+very important. Assuming $V_n$ is fixed, if $B$ is fixed, then $C$
+can be estimated from ordinary least squares fit of
+$V_n^{1/2}\vec(\hat{\xi}A_n)$ on $V_n^{1/2}\vec(I_{h-1} \otimes
+B)$. Given the new value of $C$, Cook and Ni (2005, Section 3.3)
+describe a method of updating $B$, column by column.  For starting
+values in this algorithm, \dr\ sets $B$ equal to the estimated $d$
+dimensional space obtained using \sir.
+
+The computational method will be complete if we describe the
+computation of $V_n$.  Cook and Ni (2005, Section 3.3), write
+\[
+V_n^{-1} = (A_n' \otimes I)\Gamma(A_n \otimes I)
+\]
+A consistent sample version of $\Gamma = \Cov(\vec(q\epsilon'))$ is
+required, where $q'$ is a typical row of $Q$, and $\epsilon$ has
+typical elements $\epsilon_y = \delta(Y=y) - \E(\delta(Y=y)) -
+q'\E(q\delta(Y=y))$, the population residuals from the regression of
+$\delta(Y=y)$ on $q$.  The sample version of these residuals are
+given by
+\[
+\hat{\epsilon}_{yi} = \delta(Y_i=y) - f_y - f_yq_i'\hat{\psi}_y
+\]
+where $\hat{\psi}_y$ depends on the value of the dimension $d$ and
+on the estimated central subspace.  We use the following procedure
+for setting $\hat{\psi}_y$:
+\begin{enumerate}
+\item For computations under the assumption $d=0$, set $\hat{\psi}_y = 0$.
+\item For computations under the assumption $d>0$,
+initially set $\hat{\psi}_y = \hat{\xi}_y$, and obtain an estimator
+$B$.
+\item If $d>0$ and we set the keyword \dcode{steps} to equal a
+positive integer, first compute step 2, and then repeat with
+$\hat{\psi} = P_B{\hat{\xi}}$.  If \dcode{steps} is greater than
+one, repeat the number of times indicated by the keyword; one step
+seems to be adequate.
+\end{enumerate}
+
+At completion of the computations the columns of $B$ provide a
+basis for the central subspace, assuming that it is of dimension
+$d$, in the coordinates determined by the $QR$ factorization.  We
+could replace $B$ by any matrix $TB$ where $T$ is any $p\times p$
+{\em restriction} matrix.  Indeed, the function
+\dcode{dr.iteration.ire} minimizes the function
+\begin{equation}
+F_d(B,C,T) = \left(\vec(\hat{\xi}\diag(f_y)A_n)-\vec(TBC)\right)'
+V_n \left(\vec(\hat{\xi}\diag(f_y)A_n)-\vec(TBC)\right)
+\label{eq:crit1}
+\end{equation}
+rather than (\ref{eq:crit}), maximizing over $B$ and $C$ with $T$
+fixed.
+
+Using this extension, \dr\ uses the algorithm outlined in Cook and Ni
+(2005, Section 3.3) to replace $B$ by another basis matrix $\hat{B}$
+such that the first column of $\hat{B}$ minimizes (\ref{eq:crit})
+for $d=1$, with the minimization over all vectors in the span of
+$B$, the second column of $\hat{B}$ is orthogonal to the first
+column such that $(\hat{b}_1,\hat{b}_2)$ minimizes (\ref{eq:crit})
+for $d=2$ with $\hat{b}_1$ fixed and $\hat{b}_2$ in the span of $B$,
+and so on.
+
+
+To duplicate the results for the Australian Athletes data in Cook
+and Ni (2005), the following can be used:
+<<one,include=FALSE>>=
+(m1 <- dr(LBM~log(Ht)+log(Wt)+log(SSF)+log(RCC)+log(WCC)+log(Ferr)+
+           log(Hc)+log(Hg),data=ais,method="ire",nslices=8,numdir=4,
+           slice.function=dr.slices.arc,itmax=200,steps=1,eps=1.e-6))
+@
+The call to the \dr\ function is the same as for the other dimension
+reduction methods, except that the keyword \dcode{method="ire"}. We
+have specified \dcode{nslices=8} to match Cook and Ni, rather than
+use the default of $\max(8,p+3)$, and have used
+\dcode{dr.slices.arc} to get slices, again to match Cook and Ni. The
+remaining three arguments are default values, \dcode{itmax} and
+\dcode{eps} controlling the iteration, and \dcode{steps} controlling
+the number of re\"estimates of the covariance matrix.
+
+The default printed output for \ire\ is a little different from that
+for \save\ and \sir.  Printed only are the large-sample marginal
+dimension tests.  Cook and Ni (2005, Theorem 2) show that the
+appropriate statistic for these hypothesis is $nF_d(\hat{B},\hat{C})
+\sim \chi^2(p-d)(h-d-1)$. These tests are produced whenever \ire\ is
+fit.
+
+\subsection{Solution in original coordinates}
+In \sir\ and \save, the estimated $d$-dimensional basis for
+$\span(B)$ is given by the $d$ eigenvectors corresponding to the $d$
+largest eigenvalues.  In \ire, we will get a different basis for
+each value of $d$, and so the subspaces need not be nested.  As with
+\sir\ and \save, the basis is found by multiplying $R^{-1}\hat{B}$,
+where $R$ is the Cholesky factor from the QR decomposition.
+
+Two see the two dimensional solution, use the function
+\dcode{dr.basis},
+<<two>>=
+dr.basis(m1,numdir=2)
+@
+For this problem, the first two vectors of the three-dimensional
+solution are slightly different from the two-dimensional solution:
+<<three>>=
+dr.basis(m1,3)
+@
+
+
+\subsection{Coordinate hypothesis}
+Suppose that $H$ is a {\em hypothesis matrix}; typically, $H$ could
+restrict the subspace of interest to be orthogonal to one or more of
+the predictors, but other choices are possible as well.  The {\em
+marginal predictor hypothesis} has null hypothesis $(I-P_H)S=0$
+versus $(I-P_H)S \neq 0$.  Equation (12) of Cook and Ni (2005, eq.
+12) provides the appropriate test statistic. (Cook and Ni have a
+different definition of $H$.)  As with \sir\ and \save, both
+marginal and conditional tests are available
+
+For example, a marginal predictor hypothesis test for dropping a
+variable and a conditional test assuming $d=2$ are given by
+<<mct>>=
+dr.coordinate.test(m1,~.-log(Hg))
+dr.coordinate.test(m1,~.-log(Hg),d=2)
+@
+The general syntax of the second argument is a formula that
+corresponds to $H$:  Here, $H$ is obtained from the original
+specification, \verb+~.+ by removing \dcode{log(Hg)}.  The large
+$p$-value suggests that \dcode{log(Hg)} is likely to be unimportant
+if we assume nothing about $d$, but if $d=2$ dropping
+\dcode{log(Hg)} is not supportable.
+
+As with \sir\ and \ire, \dcode{drop1} can be used to consider
+dropping each predictor in tern, and \dcode{dr.step} can be used for
+stepwise selection of predictors.
+<<drop1>>=
+drop1(m1,update=FALSE)
+@
+
+\subsection{Joint predictor test}
+One can simultaneously test $d=m$ and $(I-P_HS)=0$ by minimizing
+(\ref{eq:crit1}) with the restriction matrix $T=P_H$.  This test is
+not available for \sir\ or \save, and is used in the computation of
+the conditional coordinate test.  See the documentation for
+\dcode{dr.joint.test}.
+
+\subsection{Accessor functions}
+See Section~\ref{sec:access}.
+
+\section{Partial inverse regression with a categorical predictor}
+Wen and Cook (2007) have extended the \ire\ method to allow for
+inclusion of a categorical predictor.
+<<pire>>=
+m2 <- dr(LBM~log(Ht)+log(Wt)+log(SSF)+log(RCC)+log(WCC)+log(Ferr)+
+           log(Hc)+log(Hg),group=~Sex,data=ais,method="ire",nslices=8,
+           numdir=4,slice.function=dr.slices.arc,itmax=200,steps=1,
+           eps=1.e-6)
+@
+In this case, we have conditioned on the two levels of
+\dcode{Sex}.  The output is identical to that for \ire, except for degrees of
+freedom:
+<<pire1>>=
+m2
+@
+The argument \dcode{group} requires a one-sided formula, like
+\verb|~Sex|, where the right-side variable can be a factor or a
+variate. If you have more than one grouping variable, for example
+{\tt Sex} and {\tt AgeClass}, then use \verb|~ Sex:AgeClass|.  For
+this form, all the variables on the right-side of the formula must
+be factors.
+
+Here is the basic idea.  We first replace the $X$ matrix by the
+$\sqrt{n}Q$ factor from the $QR$ decomposition. Suppose the
+conditioning or grouping variable $G$ has $g$ levels.  Subdivide the
+data into $g$ groups, where $Q^{(k)}$ is the part of the $Q$ matrix
+for group $k$. $Q^{(k)}$ is not part of a $QR$ decomposition, and so
+we replace each $Q^{(k)}$ by its $QR$ decomposition.  This
+essentially allows each group to have its own within-group
+covariance structure. Obtain slice means $\hat{\xi}^{(k)}$, for
+$k=1,\ldots,g$.  If $h_k$ is the number of slices in the $k$-th
+group, the columns of the matrix $p \times \sum h_k$ matrix
+$(\hat{\xi}^{(1)},\ldots,\hat{\xi}^{(g)})$ all estimate vectors in
+the central (mean) subspace.  An estimate of $B$ is obtained by
+minimizing the objective function
+\begin{equation} G_d(B,C,T) = \sum_{k=1}^g F_d^{(k)}(B,C,T)
+\label{eq:critpire} \end{equation} where by $F_d^{(k)}(B,C,T)$ we
+mean (\ref{eq:crit1}) evaluated only for the $k$-th group, with
+$\hat{\xi} = \hat{\xi}^{(k)}, V_n=V_n^{(k)}$, and $\diag(f_y) =
+\diag(f_y^{(k)})$.  Theory similar to that for \ire\ permits test
+statistics similar to \ire, and these are implemented in \dr.
+
+Output for partial \ire\ parallels that for \ire.  All the functions
+that can be applied to \ire\ objects can also be applied to \pire\
+objects.
+
+\section{Auxillary functions}
+\subsection{Weights}\label{sec:weights} Weights are generally used
+in dimension reduction methods to make the resulting weighted
+sample closer to a normal distribution than the original sample.
+Cook (1998, Section 8.4) discusses the method that is implemented
+here. When weights are present, they are used in centering the
+data and computing the covariance matrix, and they are used in
+computing the objective matrix $M$ for \phd.
+%For consistency with \arc, they are not used in computing $M$
+%for \sir\ and \save\ unless the argument \dcode{use.weights} is set to
+%\dcode{T}.
+Weights may be provided by the user with the \dcode{weights}
+argument.  If \dcode{weights=NULL}, the default, no weighting is
+used.
+
+The function \dcode{dr.weights} is used to estimate weights using
+the algorithm described by Cook (1998, Sec. 8.4).  There are
+several other arguments that control how the weights are computed,
+as described below, and on the help page for the function
+\dcode{dr.weights}.  The algorithm works as follows:
+\begin{enumerate}
+\item
+For an $n\times p$ data matrix $X$, find estimates $m$ and $S$ of
+the mean and covariance matrix.  For this purpose, in \R\ the
+function \dcode{cov.rob} in the \dcode{MASS} package is used. See
+the documentation for \dcode{cov.rob} for a description of these
+additional parameters. All the defaults are sensible.
+\item
+Compute the matrix $Z = (X - 1m')S^{-1/2}$.  If the data were
+normally distributed $\N(m,S)$, the rows of $Z$ would be like a
+sample from $\N(0,I)$.
+\item
+Obtain a random vector $b$ from the $\N(0,\sigma^2I)$ distribution.
+The parameter \dcode{sigma=1} is a tuning parameter that can be set
+in the call to \dr, and values near 1 or slightly smaller seem
+appropriate.  Find the row of $Z$ that is closest to $b$ (the code
+uses Euclidean distance), and increase a counter for that row by 1.
+\item
+The argument \dcode{nsamples} determines the number of times this
+last step is repeated; the default is
+\dcode{nsamples=10*dim(x)[1]} where $X$ is the $n\times p$ data
+matrix; this number may be too small.
+\item
+Return a vector of weights given by the value of the counter
+divided by \dcode{nsamples} and multiplied by $n$, so the sum of
+the weights will be $n$.
+\end{enumerate}
+
+An example of the use of weights is:
+<<echo=TRUE>>=
+wts <- dr.weights(LBM~Ht+Wt+RCC+WCC,data=ais)
+i1 <- dr(LBM~Ht+Wt+RCC+WCC,weights=wts,method="phdres",data=ais)
+@
+\subsection{Slices}\label{sec:slice}
+\dr\ provides two functions for producing slices,
+\dcode{dr.slices}, the recommended default, and
+\dcode{dr.slices.arc}, which is the older routine used before
+version 3.0.0.  The newer version does a better job of handling
+ties.  Both functions have the same calling sequence.  For
+example,
+<<echo=TRUE>>=
+y1 <- c(1,1,1,2,3,4,5,6,7,8,8,8)
+dr.slices(y1,3)
+@
+produces a structure with three arguments, giving the indices of
+the observations in each slice, the number of slices and the slice
+sizes.
+
+If the response has $k$ columns, then the argument \dcode{nslices}
+should be a vector of $k$ elements.  If it is specified as a
+number rather than a vector, then that number will give the total
+number of cells, approximately. For example, if $k=2$ and
+\dcode{nslices=8}, the program will slice $\sqrt{8} \approx 3$
+slices along each of the two response variables for a total of
+$3\times 3=9$ two-dimensional slices.
+<<echo=TRUE>>=
+y2 <- c(1,2,3,4,1,2,3,4,1,2,3,4)
+dr.slices(cbind(y1,y2),5)
+@
+This produced 6 slices that are not all exactly the same size.
+
+There are two optional arguments to the \dr\ function that concern
+slicing.  The argument \dcode{slice.function} has values either
+\dcode{dr.slices}, the default, or \dcode{dr.slices.arc}.  The
+argument \dcode{nslices} to \dr\ is passed to the slice function.
+The default for \dcode{nslices} is the minimum of 8 and $p+3$.
+
+\subsection{Permutation tests}\label{sec:perm} Cook (1998) and Yin
+in his unpublished 2000 Ph.D. dissertation discuss using permutation
+tests to get significance levels for the marginal dimension test.
+These are implemented in the function \dcode{dr.permutation.test}.
+Typical use of this function is
+<<echo=TRUE>>=
+dr.permutation.test(s0,npermute=99,numdir=4)
+@
+The number of permutations defaults to 50 and the number of
+directions defaults to 4.  Increasing either can increase the
+computation time required to obtain the solution. The permutation
+test results for the example are very similar to the asymptotic
+results given earlier.  The permutation tests are not implemented
+for \ire.
+
+\section{Acknowledgements}
+Cindy Yu, Jorge de la Vega worked on earlier versions of the
+package. Yongwu Shao wrote most of the new dimension tests for \sir\
+and \save.  The code for \ire\ is adapted freely from Liqiang Ni's
+program written for Arc.  The code of \pire\ is essentially a
+modification of Ni's program.  Kurt Hornik was very helpful in
+getting the package to pass all the tests in \R.
+
+\begin{references}
+
+\item Bentler, PM and Xie, J (2000).  Corrections to test statistics
+in principal Hessian directions.  {\em Statistics and Probability
+Letters}, 47, 381--389.
+
+\item Chiaromonte, F., Cook, R. D. and Li, B. (2002).  Sufficient
+dimension reduction in regressions with categorical predictors.
+{\em Annals of Statistics}, 30, 475--97.
+
+\item Cook, RD (1998). {\em Regression Graphics}.  New York:  Wiley.
+
+\item Cook, RD (2004).  Testing predictor contributions in
+sufficient dimension reduction.  {\em Annals of Statistics}, 32,
+1062-1092.
+
+\item Bura E and Cook, RD (2001).  Extending sliced inverse regression:
+The weighted chi-squared test. {\em J. Amer. Statist. Assoc.} 96
+996–1003.
+
+\item Cook, RD, and Li, B (2002).  Dimension reduction for conditional
+mean in regression.  {\em Annals of Statistics}, 30, 455-474.
+
+\item Li, K C. (1991).  Sliced inverse regression for dimension reduction
+(with discussion), \jasa, 86, 316-342.
+
+\item Li, K C. (1992).  On principal Hessian directions for data
+visualization and dimension reduction:  Another application of Stein's
+lemma.  \jasa, 87, 1025--1034.
+
+\item Cook, RD and Ni, L (2005).  Sufficient dimension
+reduction via inverse regression:  A minimum discrepancy approach.
+\jasa, 100, 410--428.
+
+\item Shao, Y, Cook, RD and Weisberg, S (2007).  Marginal Tests
+with Sliced Average Variance Estimation.   {\em Biometrika}, 94,
+285--296
+
+\item Weisberg, S (2002).  Dimension Reduction Regression in \R.
+{\em Journal of Statistical Software}, 2002, Volume 7, available
+from \url{http://www.jstatsoft.org}.
+
+\item Wood ATA (1989) An $F$ approximation to the distribution of a
+linear combination of chi-squared variables. {\em Communications in
+Statistics: Simulation and Computation}, 18, 1439-1456.
+
+\item Wen, X and Cook, RD (2007).  Optimal Sufficient Dimension
+Reduction in Regressions with Categorical Predictors, {\em Journal
+of Statistical Inference and Planning}, 137, 1961--79.
+\end{references}
+
+\end{document}

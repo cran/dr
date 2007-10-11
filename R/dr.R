@@ -1,8 +1,12 @@
+.packageName <- "dr"
 #####################################################################
 #
 #     Dimension reduction methods for R and Splus
 #     Revised in July, 2004 by Sandy Weisberg and Jorge de la Vega
-#     copyright 2001, 2004, Sanford Weisberg
+#     tests for SAVE by Yongwu Shao added April 2006
+#     'ire/pire' methods added by Sanford Weisberg Summer 2006
+#     Version 3.0.0 August 2007
+#     copyright 2001, 2004, 2006, 2007, Sanford Weisberg
 #     sandy@stat.umn.edu
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -16,18 +20,15 @@
 #   GNU General Public License for more details.
 #
 #####################################################################
-#
-# Since R and Splus are not identical, different code is sometimes
-# needed.  I have tested S-Plus 2000 and S-Plus 6.0 for Linux
-# In R, the variable version$language is "R"; in SPlus, it is NULL
-
-#####################################################################
 #     dr is the primary function
 #####################################################################
 dr <- 
-function(formula, data, subset, na.action=na.fail, weights, ...)
-{  
+function(formula, data, subset, group=NULL, na.action=na.fail, weights,...)
+{      
     mf <- match.call(expand.dots=FALSE)
+    if(!is.null(mf$group)) {
+     mf$group <- eval(parse(text=as.character(group)[2]), 
+                     data,environment(group)) }
     mf$... <- NULL # ignore ...
     mf[[1]] <- as.name("model.frame")
     mf <- eval(mf, sys.frame(sys.parent()))
@@ -48,29 +49,34 @@ function(formula, data, subset, na.action=na.fail, weights, ...)
          weights <- dim(X)[1]*weights/sum(weights)
          X <- X[pos.weights,]
          Y <- if(is.matrix(Y)) Y[pos.weights,] else Y[pos.weights]}
-    ans <- dr.compute(X,Y,weights=weights,...)
+    ans <- dr.compute(X,Y,weights=weights,group=mf$"(group)",...)
     ans$call <- match.call()
     ans$y.name <- y.name
+    ans$terms <- mt
     ans
 }
 
 dr.compute <-
-function(x,y,weights,method="sir",...)
+function(x,y,weights,group=NULL,method="sir",chi2approx="bx",...)
 { 
     if (NROW(y) != nrow(x))     #check lengths
-        stop("The response and predictors have differing number of observations")
-    classname<- if (is.matrix(y))    #Set the class name
-        c(paste("m",method,sep=""),method) else method
+        stop("The response and predictors have different number of observations")
+    if (NROW(y) < ncol(x))
+        stop("The methods in dr require more observations than predictors")
+    #set the class name
+    classname<- if (is.matrix(y)) c(paste("m",method,sep=""),method) else 
+        if(!is.null(group)) c(paste("p",method,sep=""),method) else
+        method
     genclassname<-"dr"
     sweights <- sqrt(weights)
-    qr.z <- qr(scale(apply(x,2,function(a, sweights) a  * sweights, sweights), 
+    qrz <- qr(scale(apply(x,2,function(a, sweights) a  * sweights, sweights), 
                      center=TRUE, scale=FALSE))  # QR decomp of WEIGHTED x matrix
 #initialize the object and then call the fit method
-    ans <- list(x=x,y=y,weights=weights,method=method,cases=NROW(y),qr=qr.z)
+    ans <- list(x=x,y=y,weights=weights,method=method,cases=NROW(y),qr=qrz,
+                group=group,chi2approx=chi2approx)
     class(ans) <-  c(classname,genclassname)   #set the class
     ans <- dr.fit(object=ans,...)   # ... contains args for the method
-    class(ans) <-  c(classname,genclassname) # reassign class name
-    ans$x <- ans$x[,qr.z$pivot[1:qr.z$rank]] # reorder x and reduce to full rank
+    ans$x <- ans$x[,qrz$pivot[1:qrz$rank]] # reorder x and reduce to full rank
     ans #return the object
 }
     
@@ -81,10 +87,17 @@ function(x,y,weights,method="sir",...)
 dr.x <- function(object) {object$x}
 dr.wts <- function(object) {object$weights}
 dr.qr <- function(object) {object$qr}
-dr.Q <- function(object){ qr.Q(dr.qr(object))[,1:object$qr$rank] }
-dr.R <- function(object){ qr.R(dr.qr(object))[1:object$qr$rank,1:object$qr$rank]}
+dr.Q <- function(object){UseMethod("dr.Q")}
+dr.Q.default <- function(object){ qr.Q(dr.qr(object))[,1:object$qr$rank] }
+dr.R <- function(object){UseMethod("dr.R")}
+dr.R.default <- function(object){ qr.R(dr.qr(object))[1:object$qr$rank,1:object$qr$rank]}
 dr.z <- function(object) { sqrt(object$cases) * dr.Q(object) }
 dr.y.name <- function(object) {object$y.name}
+dr.basis <- function(object,numdir) {UseMethod("dr.basis")}
+dr.basis.default <- function(object,numdir=object$numdir){
+ object$evectors[,1:numdir]}
+dr.evalues <- function(object) {UseMethod("dr.evalues")}
+dr.evalues.default <- function(object) object$evalues
 
 #####################################################################
 #     Fitting function
@@ -107,8 +120,10 @@ dr.fit.default <-function(object,numdir=4,...){
     aa<-c( object, list(evectors=evectors,evalues=evalues, 
                 numdir=min(numdir,dim(evectors)[2],dim(M$M)[1]),
                 raw.evectors=raw.evectors), M)
+    class(aa) <- class(object)
     return(aa)
 }
+
 
 #####################################################################
 ###
@@ -124,8 +139,14 @@ dr.fit.default <-function(object,numdir=4,...){
 dr.M <- function(object, ...){UseMethod("dr.M")}
 dr.y <- function(object) {UseMethod("dr.y")}
 dr.y.default <- function(object){object$y}
-dr.test <- function(object, nd){  UseMethod("dr.test")}
-dr.test.default <-function(object, nd) {NULL}
+dr.test <- function(object, numdir,...){  UseMethod("dr.test")}
+dr.test.default <-function(object, numdir,...) {NULL}
+dr.coordinate.test <- function(object,hypothesis,d,chi2approx,...)
+                     {  UseMethod("dr.coordinate.test")  }
+dr.coordinate.test.default <-
+       function(object, hypothesis,d,chi2approx,...) {NULL}
+dr.joint.test <- function(object,...){ UseMethod("dr.joint.test")}
+dr.joint.test.default <- function(object,...){NULL}
 
 #####################################################################
 #     OLS
@@ -140,12 +161,14 @@ dr.M.ols <- function(object,...) {
 #     Sliced Inverse Regression and multivariate SIR
 #####################################################################
 
-dr.M.sir <-function(object,nslices=NULL,slice.info=NULL,...) {
-    z <- dr.z(object)
-    y <- dr.y(object)
+dr.M.sir <-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
+    sel <- if(is.null(sel))1:length(dr.y(object)) else sel
+    z <- dr.z(object)[sel,]
+    y <- dr.y(object)[sel]
 # get slice information    
     h <- if (!is.null(nslices)) nslices else max(8, NCOL(z)+3)
-    slices<- if(is.null(slice.info)) dr.slices(y,h) else slice.info
+    slices <- slice.function(y,h)
+    #slices<- if(is.null(slice.info)) dr.slices(y,h) else slice.info
 # initialize slice means matrix
     zmeans <- matrix(0,slices$nslices,NCOL(z))
     slice.weight <- rep(0,slices$nslices)  # NOT rep(0,NCOL(z))
@@ -163,55 +186,180 @@ dr.M.sir <-function(object,nslices=NULL,slice.info=NULL,...) {
 
 dr.M.msir <-function(...) {dr.M.sir(...)}
 
-dr.test.sir<-function(object,nd) {
-#compute the sir test statistic for the first nd directions
+dr.test.sir<-function(object,numdir=4,...) {
+#compute the sir test statistic for the first numdir directions
     e<-sort(object$evalues)
     p<-length(object$evalues)
     n<-object$cases
     st<-df<-pv<-0
-    nt <- min(p,nd)
-    for (i in 0:nt-1)
+    nt <- min(p,numdir)
+    for (i in 0:(nt-1))
       {st[i+1]<-n*(p-i)*mean(e[seq(1,p-i)])
-       df[i+1]<-(p-i)*(object$slice.info$nslices-i-1)
+       df[i+1]<-(p-i)*sum(object$slice.info$nslices-i-1)
        pv[i+1]<-1-pchisq(st[i+1],df[i+1])
       }
     z<-data.frame(cbind(st,df,pv))
     rr<-paste(0:(nt-1),"D vs >= ",1:nt,"D",sep="")
-    dimnames(z)<-list(rr,c("Stat","df","p-value")) 
+    dimnames(z)<-list(rr,c("Stat","df","p.value")) 
     z
 }
 
+#  Written by Yongwu Shao, May 2006
+dr.coordinate.test.sir<-function(object,hypothesis,d=NULL,
+    chi2approx=object$chi2approx,pval="general",...){
+    gamma <- if (class(hypothesis) == "formula")
+        coord.hyp.basis(object, hypothesis)
+        else as.matrix(hypothesis)
+    p<-length(object$evalues)
+    n<-object$cases
+    z <- dr.z(object)
+    ev <- object$evalues
+    slices<-object$slice.info
+    h<-slices$nslices
+    d <- if(is.null(d)) min(h,length(ev)) else d
+    M<-object$M
+    r<-p-dim(gamma)[2]
+    H<- (dr.R(object)) %*% gamma  
+    H <- qr.Q(qr(H),complete=TRUE) # a p times p matrix
+    QH<- H[,1:(p-r)] # first p-r columns
+    H <- H[,(p-r+1):p] # last r columns
+    st<-n*sum(ev[1:d])-n*sum(sort(eigen(t(QH)%*%M%*%QH)$values,
+               decreasing=TRUE)[1:min(d,p-r)])
+    wts <- 1-ev[1:min(d,h-1)]
+# each eigenvalue occurs r times.  
+    testr <- dr.pvalue(rep(wts,r),st,chi2approx=chi2approx) 
+# general test
+    epsilon<-array(0,c(n,h))
+    zmeans<-array(0,c(p,h)) 
+    for (i in 1:h) {
+        sel<-(slices$slice.indicator==i)
+        f_k<-sum(sel)/n
+        zmeans[,i]<-apply(z[sel,],2,mean)
+        epsilon[,i]<-(sel-f_k-z%*%zmeans[,i]*f_k)/sqrt(f_k)
+        }
+    HZ<- z%*%H
+    Phi<-svd(zmeans,nv=h)$v[,1:min(d,h)]
+    epsilonHZ<-array(0,c(n,r*d))
+    for (j in 1:n) epsilonHZ[j,]<-t(Phi)%*%t(t(epsilon[j,]))%*%t(HZ[j,])
+    wts <- eigen(((n-1)/n)*cov(epsilonHZ))$values
+    testg<-dr.pvalue(wts[wts>0],st,chi2approx=chi2approx)
+    pv <- if (pval=="restricted") testg$pval.adj else testr$pval.adj
+    z <- data.frame(cbind(st, pv))
+    dimnames(z) <- list("Test", c("Statistic", "P.value"))
+    z
+}
 
 #####################################################################
 #     Sliced Average Variance Estimation
+#  Original by S. Weisberg; modified by Yongwu Shao 4/27/2006
+#  to compute the A array needed for dimension tests
 #####################################################################
 
-dr.M.save <-function(object,nslices=NULL,slice.info=NULL,...) {
-    z <- dr.z(object)
-    y <- dr.y(object)
-    wts <- dr.wts(object)
-# get slice information
-    h <- if (!is.null(nslices)) nslices else max(8, ncol(z)+3)
-    slices<- if(is.null(slice.info)) dr.slices(y,h) else slice.info
+dr.M.save<-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
+    sel <- if(is.null(sel)) 1:length(dr.y(object)) else sel
+    z <- dr.z(object)[sel,]
+    y <- dr.y(object)[sel]
+    wts <- dr.wts(object)[sel]
+    h <- if (!is.null(nslices)) nslices else max(8, ncol(z) + 3)
+    slices <- slice.function(y,h)
+    #slices <- if (is.null(slice.info)) dr.slices(y, h) else slice.info
 # initialize M
-    M <- matrix(0,NCOL(z),NCOL(z))
-    ws <-rep(0,slices$nslices)
+    M <- matrix(0, NCOL(z), NCOL(z))
+# A is a new 3D array, needed to compute tests.
+    A <- array(0,c(slices$nslices,NCOL(z),NCOL(z)))
+    ws <- rep(0, slices$nslices)
 # Compute weighted within-slice covariance matrices, skipping any slice with
 # total weight smaller than 1
-    wvar <- function (x, w){
-     (if (sum(w) > 1) {(length(w)-1)/(sum(w)-1)} else {0}) *
-              var(sweep(x,1,sqrt(w),"*"))}
-# Compute M = sum (ws-1)(I-C)^2/sum(ws-1)
-    for (j in 1:slices$nslices){
-      ind <- slices$slice.indicator==j
-      IminusC <- diag(rep(1,NCOL(z))) -  wvar(z[ind,],wts[ind])
-      ws[j]<- sum(wts[ind]) # ws is the within slice sum of weights
-      M <- M + ws[j]*IminusC %*% IminusC
-      }
+    wvar <- function(x, w) {
+        (if (sum(w) > 1) {(length(w) - 1)/(sum(w) - 0)} else {0}) * 
+                 var(sweep(x, 1, sqrt(w), "*"))}
+    for (j in 1:slices$nslices) {
+        ind <- slices$slice.indicator == j
+        IminusC <- diag(rep(1, NCOL(z))) - wvar(z[ind, ], wts[ind])
+        ws[j] <- sum(wts[ind])
+        A[j,,] <- sqrt(ws[j])*IminusC  # new
+        M <- M + ws[j] * IminusC %*% IminusC
+    }
     M <- M/sum(ws)
-    return (list (M=M,slice.info=slices))
+    A <- A/sqrt(sum(ws)) # new
+    return(list(M = M, A = A, slice.info = slices))
 }
 
+# Written by Yongwu Shao, 4/27/2006
+dr.test.save<-function(object,numdir,...) {
+    p<-length(object$evalues)
+    n<-object$cases
+    h<-object$slice.info$nslices
+    st.normal<-df.normal<-st.general<-df.general<-0
+    pv.normal<-pv.general<-0
+    nt<-numdir
+    A<-object$A
+    M<-object$M
+    D<-eigen(M)
+    or<-rev(order(abs(D$values)))
+    evectors<-D$vectors[,or]
+    for (i in 1:nt-1) {
+        theta<-evectors[,(i+1):p]
+        st.normal[i+1]<-0
+        for (j in 1:h) {
+            st.normal[i+1]<-st.normal[i+1] + 
+                            sum((t(theta) %*% A[j,,] %*% theta)^2)*n/2
+        }
+        df.normal[i+1]<-(h-1)*(p-i)*(p-i+1)/2
+        pv.normal[i+1]<-1-pchisq(st.normal[i+1],df.normal[i+1])
+# general test
+        HZ<- dr.z(object) %*% theta
+        ZZ<-array(0,c(n,(p-i)*(p-i)))
+        for (j in 1:n) ZZ[j,]<- t(t(HZ[j,])) %*% t(HZ[j,])
+        Sigma<-cov(ZZ)/2
+        df.general[i+1]<-sum(diag(Sigma))^2/sum(Sigma^2)*(h-1)
+        st.general[i+1]<-st.normal[i+1] *sum(diag(Sigma))/sum(Sigma^2)
+        pv.general[i+1]<-1-pchisq(st.general[i+1],df.general[i+1])
+    }
+    z<-data.frame(cbind(st.normal,df.normal,pv.normal,pv.general))
+    rr<-paste(0:(nt-1),"D vs >= ",1:nt,"D",sep="")
+    dimnames(z)<-list(rr,c("Stat","df(Nor)","p.value(Nor)","p.value(Gen)"))
+    z
+}
+
+# Written by Yongwu Shao, 4/27/2006
+dr.coordinate.test.save <-
+function (object, hypothesis, d=NULL, chi2approx=object$chi2approx,...) 
+{
+    gamma <- if (class(hypothesis) == "formula") 
+        coord.hyp.basis(object, hypothesis)
+        else as.matrix(hypothesis)
+    p <- length(object$evalues)
+    n <- object$cases
+    h <- object$slice.info$nslices
+    st <- df <- pv <- 0
+    gamma <- (dr.R(object)) %*% gamma
+    r <- p - dim(gamma)[2]
+    H <- as.matrix(qr.Q(qr(gamma), complete = TRUE)[, (p - r + 
+        1):p])
+    A <- object$A
+    st <- 0
+    for (j in 1:h) {
+        st <- st + sum((t(H) %*% A[j, , ] %*% H)^2) * n/2
+    }
+# Normal predictors
+    df.normal <- (h - 1) * r * (r + 1)/2
+    pv.normal  <- 1 - pchisq(st, df.normal)
+# General predictors
+    {
+        HZ <- dr.z(object) %*% H
+        ZZ <- array(0, c(n, r^2))
+        for (j in 1:n) {
+            ZZ[j, ] <- t(t(HZ[j, ])) %*% t(HZ[j, ])
+        }
+        wts <- rep(eigen( ((n-1)/n)*cov(ZZ)/2)$values,h-1)
+        testg <- dr.pvalue(wts[wts>0],st,a=chi2approx)
+    }  
+    z <- data.frame(cbind(st, df.normal, pv.normal, testg$pval.adj))
+    dimnames(z) <- list("Test", c("Statistic", "df(Nor)", "p.val(Nor)", 
+        "p.val(Gen)"))
+    z
+}
 
 #####################################################################
 #     pHd, pHdy and pHdres
@@ -222,6 +370,7 @@ dr.M.mphd <- function(...) stop("Multivariate pHd not implemented!")
 
 dr.M.phdres <- function(...) {dr.M.phd(...)}
 dr.M.mphdres <- function(...) stop("Multivariate pHd not implemented!")
+dr.M.mphy <- function(...) stop("Multivariate pHd not implemented!")
 
 dr.M.phd <-function(object,...) {
     wts <- dr.wts(object)
@@ -241,10 +390,10 @@ dr.y.phdres <- function(object) {
    qr.resid(object$qr,sw*(y-mean(y)))}
 dr.y.phd <- function(object) {dr.y.phdres(object)}
 
-dr.test.phd<-function(object,nd) {
+dr.test.phd<-function(object,numdir,...) {
 # Modified by Jorge de la Vega, February, 2001
 #compute the phd asymptotic test statitics under restrictions for the
-#first nd directions, based on response = OLS residuals
+#first numdir directions, based on response = OLS residuals
 # order the absolute eigenvalues
     e<-sort(abs(object$evalues))
     p<-length(object$evalues)
@@ -253,13 +402,13 @@ dr.test.phd<-function(object,nd) {
     varres<-2*var(resi)
     n<-object$cases
     st<-df<-pv<-0
-    nt<-min(p,nd)
-    for (i in 0:nt-1)
+    nt<-min(p,numdir)
+    for (i in 0:(nt-1))
 # the statistic is partial sums of squared absolute eigenvalues
       {st[i+1]<-n*(p-i)*mean(e[seq(1,p-i)]^2)/varres
 # compute the degrees of freedom
        df[i+1]<-(p-i)*(p-i+1)/2
-# use asymptotic chi-square distrbution for p-values.  Requires normality.
+# use asymptotic chi-square distrbution for p.values.  Requires normality.
        pv[i+1]<-1-pchisq(st[i+1],df[i+1])
       }
 # compute the test for complete independence
@@ -275,10 +424,10 @@ dr.test.phd<-function(object,nd) {
     z
 }
 
-dr.test.phdres<-function(object,nd){dr.test.phd(object,nd)}
+dr.test.phdres<-function(object,numdir,...){dr.test.phd(object,numdir)}
 
-dr.test.phdy<-function(object,nd) {
-#compute the phd test statitics for the first nd directions
+dr.test.phdy<-function(object,numdir,...) {
+#compute the phd test statitics for the first numdir directions
 #based on response = y.  According to Li (1992), this requires normal
 #predictors.
 # order the absolute eigenvalues
@@ -289,22 +438,21 @@ dr.test.phdy<-function(object,nd) {
     varres<-2*var(resi)
     n<-object$cases
     st<-df<-pv<-0
-    nt<-min(p,nd)
-    for (i in 0:nt-1)
+    nt<-min(p,numdir)
+    for (i in 0:(nt-1))
 # the statistic is partial sums of squared absolute eigenvalues
       {st[i+1]<-n*(p-i)*mean(e[seq(1,p-i)]^2)/varres
 # compute the degrees of freedom
        df[i+1]<-(p-i)*(p-i+1)/2
-# use asymptotic chi-square distrbution for p-values.  Requires normality.
+# use asymptotic chi-square distrbution for p.values.  Requires normality.
        pv[i+1]<-1-pchisq(st[i+1],df[i+1])
       }
 # report results
     z<-data.frame(cbind(st,df,pv))
     rr<-paste(0:(nt-1),"D vs >= ",1:nt,"D",sep="")
-    cc<-c("Stat","df","p-value")
+    cc<-c("Stat","df","p.value")
     dimnames(z)<-list(rr,cc)
     z}
-
 
 #####################################################################
 # phdq, Reference:  Li (1992, JASA)
@@ -339,29 +487,47 @@ fullquad.fit <-function(object) {
 
  
 dr.y.phdq<-function(object){residuals(fullquad.fit(object),type="pearson")}
-dr.test.phdq<-function(object,nd){dr.test.phd(object,nd)}
+dr.test.phdq<-function(object,numdir,...){dr.test.phd(object,numdir)}
 dr.M.mphdq <- function(...) stop("Multivariate pHd not implemented!")
+
+
+
 
 #####################################################################
 #     Helper methods
 #####################################################################
+#####################################################################
+#  Auxillary function to find matrix H used in marginal coordinate tests
+#  We test Y indep X2 | X1, and H is a basis in R^p for the column
+#  space of X2.
+#####################################################################
 
+coord.hyp.basis <- function(object,spec,which=1) {
+ mod2 <- update(object$terms,spec)
+ Base <- attr(object$terms,"term.labels")
+ New  <- attr(terms(mod2), "term.labels")
+ cols <-na.omit(match(New,Base))
+ if(length(cols) != length(New)) stop("Error---bad value of 'spec'")
+ as.matrix(diag(rep(1,length(Base)))[,which*cols])
+ }
 
 #####################################################################
 #     Recover the direction vectors
 #####################################################################
 
-dr.directions <- function(object, which, norm, x) {UseMethod("dr.direction")}
-dr.direction  <- function(object, which, norm, x) {UseMethod("dr.direction")}
+dr.directions <- function(object, which, x) {UseMethod("dr.direction")}
+dr.direction  <- function(object, which, x) {UseMethod("dr.direction")}
 
+# standardize so that the first coordinates are always positive.
 dr.direction.default <- 
-  function(object, which=1:object$numdir,norm=FALSE,x=dr.x(object)) {
-    ans <- (apply(x,2,function(x){x-mean(x)}) %*% object$evectors)[,which]
-    ans <- if (norm) apply(ans,2,function(x){x/(sqrt(sum(x^2)))}) else ans
+  function(object, which=1:object$numdir,x=dr.x(object)) {
+    ans <- (apply(x,2,function(x){x-mean(x)}) %*% object$evectors)
+    ans <- apply(ans,2,function(x) if(x[1] <= 0)  -x else x)[,which]
     if (length(which) > 1) dimnames(ans) <-
                        list ( attr(x,"dimnames")[[1]],paste("Dir",which,sep=""))
     ans
   }
+
   
 #####################################################################
 #     Plotting methods
@@ -376,74 +542,6 @@ plot.dr <- function
  else {plot.method(d,labels=colnames(d),col=markby(dr.y(x)),...)}
  }
 
-#############This does not work in Splus
-# point marking in S is not easy because the arg col is expected to be an
-# integer rather than a list
-#########################################################################
-#plot.dr <- function(object,which=1:object$numdir,mark.by.y=FALSE,
-#                panel=points.col,colors,...) {
-# d <- dr.direction(object,which)
-# if (mark.by.y == FALSE) {
-#    pairs(cbind(dr.y(object),d),labels=c(dr.y.name(object),colnames(d)),
-#                 ,panel,colors=colors,...)
-#    }
-# else {pairs(d,labels=colnames(d),col=markby(dr.y(object)),...)}
-# }
-
-#points.col <- function(x,y,colors,...){
-#  if (version$language == "R") {points(x,y,col=colors,...)}
-#  else if (length(colors) == 1) points(x,y,col=colors,...)
-#   else {
-#    unique.colors <- unique(colors)
-#    for (j in 1:length(unique.colors)){
-#     sel<- colors == unique.colors[j]
-#     points(x[sel],y[sel],col=unique.colors[j],...)}}}
-
-dr.coplot <- function(object,which=1:object$numdir,mark.by.y=FALSE,...) {
- d <- data.frame(dr.direction(object,which))
- if (mark.by.y == FALSE){
-      d$yvar <- object$y
-      coplot(yvar~Dir1|Dir2,data=d,...)}
-    else
-     {coplot(Dir1~Dir2|Dir3,data=d,col=markby(object$y),...)}
-}
-
-givens.rotation <- function(theta,p=2,which=c(1,2)){
- m <- matrix(rep(0,p^2),nrow=p)
- m[which,which]<-
-        matrix(c(cos(theta),-sin(theta),sin(theta),cos(theta)),nrow=2)
- m}
-
-#
-# The following function rotplot gives static views of a 3D rotating
-# plot.  A call might be 
-#   rotplot(dr.directions(m1,1:2),dr.y(m1),number=16)
-# Does not seem very useful...
-
-rotplot <- function(x,y,number=9,theta=seq(0,pi/2,length=number),...){
- z<-NULL
- for (j in 1:number) { y
-   z<- rbind(z, cbind(y, x %*% givens.rotation(theta[j]), theta[j]))}
- z <- data.frame(z)
- formula <- if (version$language == "R") y~V2|V4 else z.1~z.2|z.4
- coargs <- co.intervals(z[,4],number=number,overlap=0)
- coplot(formula,data=z,given.values=coargs,
-          xlab=c("Linear combination","Angle (radians)"),
-          ylab=deparse(substitute(y)),...)}
-  
-dr.persp<-function(object,which=1:2,h=c(.1,.1),...){
- require(sm) # uses the sm library
- if (length(which) == 2){
-  d1<-dr.direction(object,which,norm=TRUE)
-  y<-dr.y(object)
-  sm.regression(d1,y,h=h,
-                     xlab=dimnames(d1)[[2]][1],
-                     ylab=dimnames(d1)[[2]][2],
-                     zlab=names(object$model[1]))
-  }
-  else
-  print("This method requires specifying two directions")
- }
 
 markby <-
 function(z,use="color",values=NULL,color.fn=rainbow,na.action="na.use") {
@@ -470,14 +568,17 @@ function(z,use="color",values=NULL,color.fn=rainbow,na.action="na.use") {
 #
 ###################################################################
 "print.dr" <-
-function(x, digits = max(3, getOption("digits") - 3), ...)
+function(x, digits = max(3, getOption("digits") - 3), width=50, 
+    numdir=x$numdir, ...)
 {
-    cat("\nCall:\n",deparse(x$call),"\n\n",sep="")
-    cat("Eigenvectors:\n")
+    fout <- deparse(x$call,width.cutoff=width)
+    for (f in fout) cat("\n",f)
+    cat("\n")
+    cat("Estimated Basis Vectors for Central Subspace:\n")
     evectors<-x$evectors
-    print.default(evectors)
+    print.default(evectors[,1:numdir])
     cat("Eigenvalues:\n")
-    print.default(x$evalues)
+    print.default(x$evalues[1:numdir])
     cat("\n")
     invisible(x)
 }
@@ -525,14 +626,16 @@ function (x, digits = max(3, getOption("digits") - 3), ...)
     cat("Method:\n")#S: ' ' instead of '\n'
     if(is.null(x$nslices)){
        cat(paste(x$method, ", n = ", x$n,sep=""))
-       if(!is.null(x$weights)) cat(", using weights.\n") else cat(".\n")}
+       if(diff(range(x$weights)) > 0)
+                  cat(", using weights.\n") else cat(".\n")}
        else {
          cat(paste(x$method," with ",x$nslices, " slices, n = ",
                    x$n,sep=""))
-         if(!is.null(x$weights)) cat(", using weights.\n") else cat(".\n")
+         if(diff(range(x$weights)) > 0) 
+              cat(", using weights.\n") else cat(".\n")
          cat("\nSlice Sizes:\n")#S: ' ' instead of '\n'
          cat(x$sizes,"\n")}
-    cat("\nEigenvectors:\n")
+    cat("\nEstimated Basis Vectors for Central Subspace:\n")
     print(x$evectors,digits=digits)
     cat("\n")
     print(x$evalues,digits=digits)
@@ -540,7 +643,8 @@ function (x, digits = max(3, getOption("digits") - 3), ...)
       cat("\nModel matrix is not full rank.  Deleted columns:\n")
       cat(x$omitted,"\n")}
     if (!is.null(x$test)){
-      cat("\nAsymp. Chi-square tests for dimension:\n")
+      cat("\nLarge-sample Marginal Dimension Tests:\n")
+      #cat("\nAsymp. Chi-square tests for dimension:\n")
       print(as.matrix(x$test),digits=digits)}
     invisible(x)
 }
@@ -590,21 +694,45 @@ dr.test2.phdres <- function(object,stats){
    start <- start + d2-i+2
    evals <- 
      eigen(as.numeric(C)*covew[start:end,start:end],only.values=TRUE)$values
-   pval<-c(pval,wood.pvalue(evals,stats[i]))}
+   pval<-c(pval,
+     dr.pvalue(evals,stats[i],chi2approx=object$chi2approx)$pval.adj)
+#   pval<-c(pval,wood.pvalue(evals,stats[i]))
+   }
 # report results
     z<-data.frame(cbind(stats,pval))
     rr<-paste(0:(p-1),"D vs >= ",1:p,"D",sep="")
-    dimnames(z)<-list(rr,c("Stat","p-value"))
+    dimnames(z)<-list(rr,c("Stat","p.value"))
     z}
    
 dr.indep.test.phdres <- function(object,stat) {
   eval <- eigen(cov.ew.matrix(object,scaled=FALSE),only.values=TRUE)
-  pval<-wood.pvalue(.5*eval$values,stat)
+  pval<-dr.pvalue(.5*eval$values,stat,
+           chi2approx=object$chi2approx)$pval.adj
 # report results
     z<-data.frame(cbind(stat,pval))
-    dimnames(z)<-list(c("Test of independence"),c("Stat","p-value"))
+    dimnames(z)<-list(c("Test of independence"),c("Stat","p.value"))
     z}
 
+dr.pvalue <- function(coef,f,chi2approx=c("bx","wood"),...){
+ method <- match.arg(chi2approx)
+ if (method == "bx") {
+   bentlerxie.pvalue(coef,f)} else{
+   wood.pvalue(coef,f,...)}}
+
+
+bentlerxie.pvalue <- function(coef,f) {
+# Returns the Bentler-Xie approximation to P(coef'X > f), where
+# X is a vector of iid Chi-square(1) r.v.'s, coef is a vector of weights,
+# and f is the observed value.
+  trace1 <- sum(coef)                   
+  trace2 <- sum(coef^2)
+  df.adj <- trace1^2/trace2   
+  stat.adj <- f *  df.adj/trace1
+  bxadjusted <- 1 - pchisq(stat.adj, df.adj)  
+  ans <- data.frame(test=f,test.adj=stat.adj,
+                    df.adj=df.adj,pval.adj=bxadjusted)
+  ans
+}
 
 wood.pvalue <- function (coef, f, tol=0.0, print=FALSE){
 #Returns an approximation to P(coef'X > f) for X=(X1,...,Xk)', a vector of iid
@@ -640,9 +768,9 @@ wood.pvalue <- function (coef, f, tol=0.0, print=FALSE){
         if (print) print(paste(
           "Three parameter F(Pearson Type VI) approximation =", pval))}
       else {
-        pval <- -1
+        pval <- NULL
         if (print) print("Wood's Approximation failed")}}
-   pval}
+   data.frame(test=f,test.adj=NA,df.adj=NA,pval.adj=pval)}
 
 
 #########################################################################
@@ -651,8 +779,10 @@ wood.pvalue <- function (coef, f, tol=0.0, print=FALSE){
 #
 #########################################################################
 
-dr.permutation.test <- function(object,npermute=50,numdir=object$numdir,
-                                permute.weights=TRUE) {
+dr.permutation.test <- function(object,npermute=50,numdir=object$numdir) {
+ if (inherits(object,"ire")) stop("Permutation tests not implemented for ire")
+ else{
+   permute.weights <- TRUE
    call <- object$call
    call[[1]] <- as.name("dr.compute")
    call$formula <- call$data <- call$subset <- call$na.action <- NULL
@@ -686,11 +816,11 @@ dr.permutation.test <- function(object,npermute=50,numdir=object$numdir,
    pval<-(count)/(npermute+1)
    ans1 <- data.frame(cbind(obstest,pval))
    dimnames(ans1) <-list(paste(0:(nt-1),"D vs >= ",1:nt,"D",sep=""),
-                         c("Stat","p-value"))
+                         c("Stat","p.value"))
    ans<-list(summary=ans1,npermute=npermute)
    class(ans) <- "dr.permutation.test"
    ans
-   }
+   }}
 
 "print.dr.permutation.test" <-
 function(x, digits = max(3, getOption("digits") - 3), ...)
@@ -712,18 +842,18 @@ function(x, digits = max(3, getOption("digits") - 3), ...)
 #
 #########################################################################
 
-dr.permutation.test.statistic <- function(object,nd)
+dr.permutation.test.statistic <- function(object,numdir)
   {UseMethod("dr.permutation.test.statistic")}
 
-dr.permutation.test.statistic.default <- function(object,nd){
-   object$cases*rev(cumsum(rev(object$evalues)))[1:nd]}
+dr.permutation.test.statistic.default <- function(object,numdir){
+   object$cases*rev(cumsum(rev(object$evalues)))[1:numdir]}
 
-dr.permutation.test.statistic.phdy <- function(object,nd){
-       dr.permutation.test.statistic.phd(object,nd)}
-dr.permutation.test.statistic.phdres <- function(object,nd){
-       dr.permutation.test.statistic.phd(object,nd)}
-dr.permutation.test.statistic.phd <- function(object,nd){
-   (.5*object$cases*rev(cumsum(rev(object$evalues^2)))/var(dr.y(object)))[1:nd]}
+dr.permutation.test.statistic.phdy <- function(object,numdir){
+       dr.permutation.test.statistic.phd(object,numdir)}
+dr.permutation.test.statistic.phdres <- function(object,numdir){
+       dr.permutation.test.statistic.phd(object,numdir)}
+dr.permutation.test.statistic.phd <- function(object,numdir){
+   (.5*object$cases*rev(cumsum(rev(object$evalues^2)))/var(dr.y(object)))[1:numdir]}
 
 #####################################################################
 #
@@ -733,8 +863,41 @@ dr.permutation.test.statistic.phd <- function(object,nd){
 #     list of the number of slices in each dimension
 #
 #####################################################################
-
 dr.slices <- function(y,nslices) {
+  dr.slice.1d <- function(y,h) {
+      z<-unique(y)
+      if (length(z) > h) dr.slice2(y,h) else dr.slice1(y,sort(z))}
+  dr.slice1 <- function(y,u){
+      z <- sizes <- 0
+      for (j in 1:length(u)) {
+          temp <- which(y==u[j])
+          z[temp] <- j
+          sizes[j] <- length(temp) } 
+      list(slice.indicator=z, nslices=length(u), slice.sizes=sizes)}
+  dr.slice2 <- function(y,h){
+       myfind <- function(x,cty){
+          ans<-which(x <= cty)
+          if (length(ans)==0) length(cty) else ans[1]} 
+       or <- order(y)     # y[or] would return ordered y
+       cty <- cumsum(table(y))  # cumulative sums of counts of y
+       names(cty) <- NULL # drop class names
+       n <- length(y)     # length of y
+       m<-floor(n/h)      # nominal number of obs per slice
+       sp <- end <- 0     # initialize
+       j <- 0             # slice counter will end up <= h
+       ans <- rep(1,n)    # initialize slice indicator to all slice 1
+       while(end < n-2) { # find slice boundaries:  all slices have at least 2 obs
+          end <- end+m
+          j <- j+1       
+          sp[j] <- myfind(end,cty) 
+          end <- cty[sp[j]]}
+       sp[j] <- length(cty)
+       for (j in 2:length(sp)){ # build slice indicator
+         firstobs <- cty[sp[j-1]]+1
+         lastobs <- cty[sp[j]]
+         ans[or[firstobs:lastobs]] <- j}
+       list(slice.indicator=ans, nslices=length(sp),
+            slice.sizes=c(cty[sp[1]],diff(cty[sp]))) }
   p <- if (is.matrix(y)) dim(y)[2] else 1
   h <- if (length(nslices) == p) nslices else rep(ceiling(nslices^(1/p)),p)
   a <- dr.slice.1d( if(is.matrix(y)) y[,1] else y, h[1])
@@ -757,25 +920,9 @@ dr.slices <- function(y,nslices) {
     a$slice.sizes <- L }
   a}
 
-# modified 11/8/03 for a categorical predictor, but this will still fail in
-# some circumstances if length(z) > h if the first value of y has too many
-# observations.
-dr.slice.1d <- function(y,h) {
- z<-unique(y)
- if (length(z) >= h) dr.slice2(y,h) else dr.slice1(y,length(z),sort(z))}
-# dr.slice2(y,h)}
-
-dr.slice1 <- function(y,h,u){
-  z <- sizes <- 0
-  for (j in 1:length(u)) {
-      temp <- which(y==u[j])
-      z[temp] <- j
-      sizes[j] <- length(temp) } 
-  list(slice.indicator=z, nslices=length(u), slice.sizes=sizes)
-  }
-
-dr.slice2<-function(y,h)
+dr.slices.arc<-function(y,nslices)  # matches slices produced by Arc
 {
+  h <- nslices
   or <- order(y)
   n <- length(y)
   m<-floor(n/h)
@@ -802,7 +949,7 @@ dr.slice2<-function(y,h)
   for (k in 2:j){ans[ or[(sp[k-1]+1):sp[k] ] ] <- k}
   list(slice.indicator=ans, nslices=j, slice.sizes=c(sp[1],diff(sp)))
 }
-
+     
 #####################################################################
 #
 #     Misc. Auxillary functions: cosine of the angle between two 
@@ -829,6 +976,7 @@ cosangle1 <- function(mat,vec) {
 }
 
 
+
 #####################################################################
 # R Functions for reweighting for elliptical symmetry
 # modified from reweight.lsp for Arc
@@ -851,7 +999,7 @@ cosangle1 <- function(mat,vec) {
 #####################################################################
 dr.weights <-
 function (formula, data = list(), subset, na.action=na.fail, 
-   covmethod="mve",sigma=1,nsamples=NULL,...)
+   sigma=1,nsamples=NULL,...)
 {
 # Create design matrix from the formula and call dr.estimate.weights
     mf1 <- match.call(expand.dots=FALSE)
@@ -863,7 +1011,10 @@ function (formula, data = list(), subset, na.action=na.fail,
     x <- model.matrix(mt, mf)
     int <- match("(Intercept)", dimnames(x)[[2]], nomatch=0)
     if (int > 0) x <- x[, -int, drop=FALSE] # drop the intercept from X
-    z <- robust.center.scale(x,method=covmethod,...)
+    ans <- cov.rob(x, ...) 
+    m <- ans$center
+    s<-svd(ans$cov)
+    z<-sweep(x,2,m) %*% s$u %*% diag(1/sqrt(s$d))
     n <- dim(z)[1]   # number of obs
     p <- dim(z)[2]   # number of predictors
     ns <- if (is.null(nsamples)) 10*n else nsamples
@@ -882,23 +1033,56 @@ function (formula, data = list(), subset, na.action=na.fail,
     w1 <- rep(NA,length=dim(eval(mf1))[1])
     w1[subset] <- w
     return(w1)}}
-
-
-robust.center.scale<- function (x,method, ...) { 
-# This function takes an n by p matrix x, finds a robust center m and scale
-# S, and then returns (x-1t(m)) %*% S^(-1/2).  
-# This method uses the cov.rob method in the MASS package
-# Additional args to the function are passed to cov.rob.
-#
-# make sure the library is loaded
- if(version$language == "R")
-   {if(!require(MASS)){ 
-      stop("MASS package not in library, but is required for this function")}} else
-   {if(!exists("covRob")) library(MASS)}
- ans <- cov.rob(x,method=method, ...) 
- m <- if (method == "classical") apply(x,2,"median") else ans$center
- s<-svd(ans$cov)
- sweep(x,2,m) %*% s$u %*% diag(1/sqrt(s$d))}
+ 
+###################################################################
+## drop1 methods 
+###################################################################
+    
+drop1.dr <-
+function (object, scope=NULL, update=TRUE, test = "general",...) 
+{
+    keep <- if(is.null(scope)) NULL else
+         attr(terms(update(object$terms,scope)),"term.labels")
+    all <- attr(object$terms,"term.labels")
+    candidates <- setdiff(all,keep)
+    if(length(candidates) == 0) stop("Error---nothing to drop")
+    ans <- NULL
+    for (label in candidates){
+     ans <- rbind(ans,
+      dr.coordinate.test(object,as.formula(paste("~.-",label,sep="")),...))
+    }
+    row.names(ans) <- paste("-",candidates)
+    ncols <- ncol(ans)
+    or <- order(-ans[,if(test=="general") ncols else (ncols-1)])
+    form <- formula(object) 
+    attributes(form) <- NULL
+    fout <- deparse(form,width.cutoff=50)
+    for (f in fout) cat("\n",f)
+    cat("\n")
+    print(ans[or,]) 
+    if (is.null(object$stop)) { object$stop <- 0 }
+    stopp <- if(ans[or[1],if(test=="general") ncols else (ncols-1)] <
+                  object$stop) TRUE else FALSE 
+    if (stopp == TRUE){ 
+     cat("\nStopping Criterion Met\n")
+     object$stop <- TRUE; object } else
+     if(update==TRUE) {
+      update(object,as.formula(paste("~.",row.names(ans)[or][1],sep="")))} 
+       else invisible(ans)
+    }
+  
+dr.step <-
+function(object,scope=NULL,d=NULL,numdir=object$numdir,stop=0,...) {
+   if(is.null(object$stop)){ object$stop <- stop }
+   if(object$stop == TRUE) object else {
+    numdir <- max(2,numdir)
+    keep <- if(is.null(scope)) NULL else
+         attr(terms(update(object$terms,scope)),"term.labels")
+    all <- attr(object$terms,"term.labels")
+    if (length(keep) >= length(all) | length(all) <= numdir) object else {
+    if(dim(object$x)[2] <= numdir) object else {
+      obj1 <- drop1(object,scope=scope,d=d,...)
+      dr.step(obj1,scope=scope,d=d,numdir=numdir,stop=stop,...)}}}}
  
 #####################################################################
 ##
@@ -933,4 +1117,476 @@ function(x, do.NULL = TRUE, prefix = "col")
 # end of special functions
 }
 
-# END OF FILE
+#####################################################################
+#     ire:  Cook, RD and Ni, L (2005). Sufficient Dimension reduction via
+# inverse regression:  A minimum discrepancy approach.  JASA 410-428
+#  This code does all computations by computing the QR factorization of the
+#  centered X matrix, and then using sqrt(n) Q in place of X in the
+#  computations.  Back transformation to X scale is done only when direction
+#  vectors are needed.
+#####################################################################
+dr.fit.ire <-function(object,numdir=4,nslices=NULL,slice.function=dr.slices,
+    tests=TRUE,...){ 
+    z <- dr.z(object)    
+    h <- if (!is.null(nslices)) nslices else max(8, NCOL(z)+3)
+    slices <- slice.function(dr.y(object),h)
+    object$slice.info <- slices
+    f <- slices$slice.sizes/sum(slices$slice.sizes)
+    n <- object$cases
+    weights <- object$weights
+    p <- dim(z)[2]
+    numdir <- min(numdir,p-1)
+    h <- slices$nslices
+    xi <- matrix(0,nrow=p,ncol=slices$nslices)
+    for (j in 1:h){
+     sel <- slices$slice.indicator==j
+     xi[,j]<-apply(z[sel,],2,function(a,w) sum(a*w)/sum(w),weights[sel])
+    } 
+    object$sir.raw.evectors <- eigen(xi %*% diag(f) %*% t(xi))$vectors
+    object$slice.means <- xi # matrix of slice means
+    An <- qr.Q(qr(contr.helmert(slices$nslices)))
+    object$zeta <- xi %*% diag(f) %*% An
+    rownames(object$zeta) <- paste("Q",1:dim(z)[2],sep="")
+    ans <- NULL
+    if (tests == TRUE) {
+      object$indep.test <- dr.test(object,numdir=0,...)
+      Gz <- Gzcomp(object,numdir)  # This is the same for all numdir > 0
+      for (d in 1:numdir){
+         ans[[d]] <- dr.test(object,numdir=d,Gz,...)
+         colnames(ans[[d]]$B) <- paste("Dir",1:d,sep="")     
+      }
+# This is different from Ni's lsp code.  Gamma_zeta is computed from the
+# fit of the largest dimension and stored.
+    object$Gz <- Gzcomp(object,d,span=ans[[numdir]]$B)
+    }
+    aa<-c(object, list(result=ans,numdir=numdir,n=n,f=f))
+    class(aa) <- class(object)
+    return(aa)
+}
+     
+dr.test.ire <- function(object,numdir,Gz=Gzcomp(object,numdir),steps=1,...){       
+   ans <- dr.iteration(object,Gz,d=numdir,
+             B=object$sir.raw.evectors[,1:numdir,drop=FALSE],...)
+   if (steps > 0 & numdir > 0){ # Reestimate if steps > 0.
+    for (st in 1:steps){
+     Gz <- Gzcomp(object,numdir,ans$B[,1:numdir])
+     ans <- dr.iteration(object,Gz,d=numdir,
+             B=ans$B[,1:numdir,drop=FALSE],...)}}
+# reorder B matrix according to importance (col. 2 of p. 414)
+   if (numdir > 1){
+     ans0 <- dr.iteration(object,Gz,d=1,T=ans$B)
+     sumry <- ans0$summary
+     B0 <- matrix(ans0$B/sqrt(sum((ans0$B)^2)),ncol=1)
+     C <- ans$B
+     for (d in 2:numdir) {
+        common <- B0[,d-1]
+        for (j in 1:dim(C)[2]){
+            C[,j] <- C[,j] - sum(common*(C[,j]))*B0[,d-1]}
+        C <- qr.Q(qr(C))[,-dim(C)[2],drop=FALSE]
+        ans0 <- dr.iteration(object,Gz,d=1,T=C)
+        B0 <- cbind(B0,ans0$B/sqrt(sum((ans0$B)^2)))
+        sumry <- rbind(sumry,dr.iteration(object,Gz,d=d,T=B0)$summary)
+        }
+# scale to length 1 and make first element always positive
+    ans$B <- apply(B0,2,function(x){
+        b <- x/sqrt(sum(x^2))
+        if (b[1] < 0) - b else b})
+    ans$sequential <- sumry
+    }
+   if (numdir > 0) {colnames(ans$B) <- paste("Dir",1:numdir,sep="")}
+   if (numdir > 1) rownames(ans$sequential) <- paste(1:numdir)
+   ans}
+   
+Gzcomp <- function(object,numdir,span){UseMethod("Gzcomp")}
+Gzcomp.ire <- function(object,numdir,span=NULL){
+    slices <- object$slice.info
+    An <- qr.Q(qr(contr.helmert(slices$nslices)))
+    n <- object$cases
+    weights <- object$weights
+    z <- dr.z(object)  # z is centered with correct weights.
+    p <- dim(object$slice.means)[1]
+    h <- slices$nslices
+    f <- slices$slice.sizes/sum(slices$slice.sizes)
+# page 411, eq (1) except projecting to d dimensions using span.
+    span <- if (!is.null(span)) span else diag(rep(1,p))
+    xi <- if (numdir > 0){qr.fitted(qr(span),object$slice.means)} else {
+          matrix(0,nrow=p,ncol=h)}        
+# We next compute the inner product matrix Vn = inverse(Gamma_zeta)
+# We compute only the Cholesky decomposition of Gamma_zeta, as that
+# is all that is needed.  The name is reused for intermediate quantities
+# to save space (it is a p*(h-1) by p*(h-1) matrix).
+# First, compute Gamma, defined on line 2 p. 414
+# make use of vec(A %*% B) = kronecker(t(B), A)
+# and also that the mean of vec, as defined below, is zero.
+    Gz <- array(0,c(p*h,p*h)) 
+    Gmat <- NULL
+    for (i in 1:n){
+     epsilon_i <- -f -z[i,,drop=FALSE] %*% xi %*% diag(f)
+     epsilon_i[slices$slice.indicator[i]]<-1+epsilon_i[slices$slice.indicator[i]]
+     vec <- as.vector( z[i,] %*% epsilon_i)
+     Gmat <- rbind(Gmat,vec)}
+     Gz <- chol(kronecker(t(An),diag(rep(1,p))) %*% (((n-1)/n)*cov(Gmat)) %*%
+                 kronecker(An,diag(rep(1,p))))
+     Gz}
+   
+#####################################################################
+##  ire iteration
+##  B, if set, is a p by d matrix whose columns are a starting value
+##     for a basis for the central subspace.  The default is the first
+##     d columns of I_p
+##  R, if set, is a restriction matrix, such that the estimated
+##     spanning vectors are RB, not B itself.
+##  Returned matrix B is really R %*% B
+##  --fn is the objective function, eq (5) of Cook & Ni (2004)
+##  --updateC is step 2 of the algorithm on p. 414
+##  --updateB is step 3 of the algorithm on p. 414
+##  --PBk in the paper is the projection on an orthogonal completment
+##      of the operator QBk.  It is the QR decomposition of the projection,
+##      not its complement (hence the use of qr.resid, not qr.fitted)
+######################################################################
+dr.iteration <- function(object,Gz,d=2,B,T,eps,itmax,verbose){UseMethod("dr.iteration")}
+dr.iteration.ire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
+   verbose=FALSE){
+   n <- object$cases
+   zeta <- object$zeta
+   p <- dim(zeta)[1]
+   h1 <- dim(zeta)[2]  # zeta is p by (h-1) for ire and sum(h-1) for pire
+   if (d == 0){ 
+     err <- n*sum(forwardsolve(t(Gz),as.vector(zeta))^2)
+     data.frame(Test=err,df=(p-d)*(h1-d),
+               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=0)} else {
+   T <- if(is.null(T)) diag(rep(1,p)) else T
+   B <- if(is.null(B)) diag(rep(1,ncol(T)))[,1:d,drop=FALSE] else B
+   fn <- function(B,C){ 
+           n * sum( forwardsolve(t(Gz),as.vector(zeta)-as.vector(T%*%B%*%C))^2 ) }
+   updateC <- function() {
+        matrix( qr.coef(qr(forwardsolve(t(Gz),kronecker(diag(rep(1,h1)),T%*%B))),
+                           forwardsolve(t(Gz),as.vector(zeta))), nrow=d)}
+   updateB <- function() { 
+      for (k in 1:d) { 
+         alphak <- as.vector(zeta - T %*% B[,-k,drop=FALSE] %*% C[-k,])
+         PBk <- qr(B[,-k])  
+         bk <- qr.coef(
+                qr(forwardsolve(t(Gz),
+                    t(qr.resid(PBk,t(kronecker(C[k,],T)))))),
+                forwardsolve(t(Gz),as.vector(alphak)))
+         bk[is.na(bk)] <- 0  # can use any OLS estimate; eg, set NA to 0
+         bk <- qr.resid(PBk,bk)
+         B[,k] <- bk/sqrt(sum(bk^2))}
+         B}
+     C <- updateC()  # starting values
+     err <- fn(B,C)
+     iter <- 0
+     repeat{
+       iter <- iter+1
+       B <- updateB()
+       C <- updateC()
+       errold <- err
+       err <- fn(B,C)
+       if(verbose==TRUE) print(paste("Iter =",iter,"Fn =",err),quote=FALSE)
+       if ( abs(err-errold)/errold < eps || iter > itmax ) break
+       }  
+     B <- T %*% B
+     rownames(B) <- rownames(zeta)
+     list(B=B,summary=data.frame(Test=err,df=(p-d)*(h1-d),
+               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=iter))
+     }}
+
+# Equation (12), p. 415 of Cook and Ni (2004) for d=NULL
+# Equation (14), p. 415 for d > 0
+# Remember...all calculations are in the Q scale, where X=QR...
+dr.coordinate.test.ire<-function(object,hypothesis,d=NULL,...){
+    gamma <- if (class(hypothesis) == "formula")
+        coord.hyp.basis(object, hypothesis)
+        else as.matrix(hypothesis)
+    gamma <- dr.R(object)%*%gamma  # Rotate to Q-coordinates:
+    p <- dim(object$x)[2]
+    r <- p-dim(gamma)[2] 
+    maxdir <- length(object$result)   
+   if(is.null(d)){
+    h1 <- dim(object$zeta)[2] # h-1 for ire, sum(h-1) for pire
+    H <- qr.Q(qr(gamma),complete=TRUE)[,-(1:(p-r)),drop=FALSE]
+    n<-object$cases
+    Gz <- object$Gz 
+    zeta <- object$zeta
+    m1 <- Gz %*% kronecker(diag(rep(1,h1)),H)
+    m1 <- chol(t(m1) %*% m1)
+    T_H <- n * sum (forwardsolve(t(m1),as.vector(t(H)%*%zeta))^2)
+    df <- r*(h1)
+    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower=FALSE))
+    z} 
+   else {
+    F0 <-if(maxdir >= d) object$result[[d]]$summary$Test else
+          dr.iteration(object,object$Gz,d=d,...)$summary$Test
+    F1 <- dr.joint.test(object,hypothesis,d=d,...)$summary$Test
+    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower=FALSE))
+    }}
+ 
+# Unnumbered equation middle of second column, p. 415 of Cook and Ni (2004)   
+dr.joint.test.ire<-function(object,hypothesis,d=NULL,...){
+    if(is.null(d)) {dr.coordinate.test(object,hypothesis,...)} else {
+     gamma <- if (class(hypothesis) == "formula")
+         coord.hyp.basis(object, hypothesis)
+         else as.matrix(hypothesis)
+     gamma <- dr.R(object)%*%gamma  # Rotate to Q-coordinates:         
+     dr.iteration(object,object$Gz,d=d,T=gamma)}}
+    
+### print/summary functions
+print.ire <- function(x, width=50, ...) { 
+    fout <- deparse(x$call,width.cutoff=width)
+    for (f in fout) cat("\n",f)
+    cat("\n")
+    numdir <- length(x$result)
+    tests <- x$indep.test
+    for (d in 1:numdir) {
+     tests <- rbind(tests,x$result[[d]]$summary)}   
+    rownames(tests) <- paste(0:numdir,"D vs"," > ",0:numdir,"D",sep="")
+    cat("Large-sample Marginal Dimension Tests:\n")
+    print(tests)
+    cat("\n")
+    invisible(x)
+}
+
+"summary.ire" <- function (object, ...)
+{   ans <- object[c("call")]
+    result <- object$result
+    numdir <- length(result)
+    tests <- object$indep.test
+    for (d in 1:numdir) {
+       tests <- rbind(tests,result[[d]]$summary)}
+    rownames(tests) <- paste(0:numdir,"D vs"," > ",0:numdir,"D",sep="")
+    ans$method <- object$method
+    ans$nslices <- object$slice.info$nslices
+    ans$sizes <- object$slice.info$slice.sizes
+    ans$weights <- dr.wts(object)
+    ans$result <- object$result
+    for (j in 1:length(ans$result)) {ans$result[[j]]$B <- dr.basis(object,j)}
+    ans$n <- object$cases #NROW(object$model)
+    ans$test <- tests
+    class(ans) <- "summary.ire"
+    ans
+}
+
+"print.summary.ire" <-
+function (x, digits = max(3, getOption("digits") - 3), ...)
+{
+    cat("\nCall:\n")#S: ' ' instead of '\n'
+    cat(paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
+    cat("Method:\n")#S: ' ' instead of '\n'
+    cat(x$method,"with",x$nslices, " slices, n =",x$n) 
+    if(diff(range(x$weights)) > 0)cat(", using weights.\n") else cat(".\n")
+    cat("\nSlice Sizes:\n")#S: ' ' instead of '\n'
+    cat(x$sizes,"\n")
+    cat("\nLarge-sample Marginal Dimension Tests:\n")
+      print(as.matrix(x$test),digits=digits)
+    cat("\n")       
+    cat("\nSolutions for various dimensions:\n")
+    for (d in 1:length(x$result)){
+     cat("\n",paste("Dimension =",d),"\n")
+     print(x$result[[d]]$B,digits=digits)}
+     cat("\n")
+     invisible(x)
+}
+
+dr.basis.ire <- function(object,numdir=length(object$result)) {
+    fl <- function(z) apply(z,2,function(x){
+        b <- x/sqrt(sum(x^2))
+        if (b[1] < 0) -1*b else b}) 
+    ans <- fl(backsolve(dr.R(object),object$result[[numdir]]$B))
+    dimnames(ans) <- list(colnames(dr.x(object)),
+                         paste("Dir",1:dim(ans)[2],sep=""))
+    ans}
+
+dr.direction.ire <- 
+  function(object, which=1:length(object$result),x=dr.x(object)){
+    d <- max(which)
+    scale(x,center=TRUE,scale=FALSE) %*% dr.basis(object,d)
+    }
+   
+#############################################################################
+# partial ire --- see Wen and Cook (in press), Optimal sufficient dimension
+# reduction in regressions with categorical predictors. Journal of Statistical
+# planning and inference.
+#############################################################################
+
+dr.fit.pire <-function(object,numdir=4,nslices=NULL,slice.function=dr.slices,...){ 
+    y <- dr.y(object)
+    z <- dr.z(object) 
+    p <- dim(z)[2]
+    if(is.null(object$group)) object$group <- rep(1,dim(z)[1])
+    group.names <- unique(as.factor(object$group))
+    nw <- table(object$group)
+    if (any(nw < p) ) stop("At least one group has too few cases")
+    h <- if (!is.null(nslices)) nslices else NCOL(z)
+    group.stats <- NULL
+    for (j in 1:length(group.names)){
+      name <- group.names[j] 
+      group.sel <- object$group==name
+      ans <- dr.compute(z[group.sel,],y[group.sel],method="ire",
+            nslices=h,slice.function=slice.function,
+            tests=FALSE,weights=object$weights[group.sel])
+      object$zeta[[j]] <- ans$zeta
+      group.stats[[j]] <- ans
+      }
+    object$group.stats <- group.stats
+    numdir <- min(numdir,p-1)
+    object$sir.raw.evectors <- dr.compute(z,y,nslices=h,
+            slice.function=slice.function,
+            weights=object$weights)$raw.evectors
+    class(object) <- c("pire","ire","dr")
+    object$indep.test <- dr.test(object,numdir=0,...)
+    Gz <- Gzcomp(object,numdir)  # This is the same for all numdir > 0
+    ans <- NULL
+    for (d in 1:numdir){
+       ans[[d]] <- dr.test(object,numdir=d,Gz,...)
+       colnames(ans[[d]]$B) <- paste("Dir",1:d,sep="")     
+    }
+    object$Gz <- Gzcomp(object,d,span=ans[[numdir]]$B)
+    aa<-c(object, list(result=ans,numdir=numdir))
+    class(aa) <- class(object)
+    return(aa)
+}
+
+dr.iteration.pire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
+   verbose=FALSE){
+   gsolve <- function(a1,a2){  #modelled after ginv in MASS
+    Asvd <- svd(a1)
+    Positive <- Asvd$d > max(sqrt(.Machine$double.eps) * Asvd$d[1], 0)
+    if(all(Positive))
+     Asvd$v %*% (1/Asvd$d * t(Asvd$u)) %*% a2
+    else Asvd$v[, Positive, drop = FALSE] %*% ((1/Asvd$d[Positive]) * 
+        t(Asvd$u[, Positive, drop = FALSE])) %*% a2}
+   n <- object$cases
+   zeta <- object$zeta
+   n.groups <- length(zeta)
+   p <- dim(zeta[[1]])[1]
+   h1 <- 0
+   h2 <- NULL
+   for (j in 1:n.groups){
+      h2[j] <- dim(zeta[[j]])[2]
+      h1 <- h1 + h2[j]}
+   if (d == 0){ 
+     err <- 0
+     for (j in 1:n.groups){
+      err <- err + n*sum(forwardsolve(t(Gz[[j]]),as.vector(zeta[[j]]))^2)}
+     data.frame(Test=err,df=(p-d)*(h1-d),
+               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=0)} else {
+   T <- if(is.null(T)) diag(rep(1,p)) else T
+   B <- if(is.null(B)) diag(rep(1,ncol(T)))[,1:d,drop=FALSE] else B
+   fn <- function(B,C){ 
+           ans <- 0
+           for (j in 1:n.groups){ans <- ans +
+            n * sum( forwardsolve(t(Gz[[j]]),as.vector(zeta[[j]])-
+                as.vector(T%*%B%*%C[[j]]))^2) }
+            ans}
+   updateC <- function() {
+        C <- NULL
+        for (j in 1:n.groups){ C[[j]]<-
+        matrix( qr.coef(qr(forwardsolve(t(Gz[[j]]),kronecker(diag(rep(1,h2[j])),T%*%B))),
+                           forwardsolve(t(Gz[[j]]),as.vector(zeta[[j]]))), nrow=d)}
+        C}
+   updateB <- function() { 
+      for (k in 1:d) { 
+         PBk <- qr(B[,-k]) 
+         a1 <- a2 <- 0
+         for (j in 1:n.groups){
+          alphak <- as.vector(zeta[[j]]-T%*%B[,-k,drop=FALSE]%*%C[[j]][-k,])
+          m1 <-  forwardsolve(t(Gz[[j]]),
+                    t(qr.resid(PBk,t(kronecker(C[[j]][k,],T)))))
+          m2 <- forwardsolve(t(Gz[[j]]),alphak)
+          a1 <- a1 + t(m1) %*% m1
+          a2 <- a2 + t(m1) %*% m2}
+         bk <- qr.resid(PBk, gsolve(a1,a2))
+         bk[is.na(bk)] <- 0  # can use any OLS estimate; eg, set NA to 0
+         bk <- qr.resid(PBk,bk)
+         B[,k] <- bk/sqrt(sum(bk^2))}
+         B}
+     C <- updateC()  # starting values
+     err <- fn(B,C)
+     iter <- 0
+     repeat{
+       iter <- iter+1
+       B <- updateB()
+       C <- updateC()
+       errold <- err
+       err <- fn(B,C)
+       if(verbose==TRUE) print(paste("Iter =",iter,"Fn =",err),quote=FALSE)
+       if ( abs(err-errold)/errold < eps || iter > itmax ) break
+       }  
+     B <- T %*% B
+     rownames(B) <- rownames(zeta)
+     list(B=B,summary=data.frame(Test=err,df=(p-d)*(h1-d),
+               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=iter))
+     }}
+     
+dr.coordinate.test.pire<-function(object,hypothesis,d=NULL,...){
+    gamma <- if (class(hypothesis) == "formula")
+        coord.hyp.basis(object, hypothesis)
+        else as.matrix(hypothesis)
+    gamma <- dr.R(object)%*%gamma  # Rotate to Q-coordinates:
+    p <- object$qr$rank
+    r <- p-dim(gamma)[2] 
+    maxdir <- length(object$result) 
+    n.groups <- length(object$group.stats)
+    h1 <- 0
+    h2 <- NULL
+    zeta <- object$zeta
+    for (j in 1:n.groups){
+      h2[j] <- dim(zeta[[j]])[2]
+      h1 <- h1 + h2[j]}  
+   if(is.null(d)){
+    H <- qr.Q(qr(gamma),complete=TRUE)[,-(1:(p-r)),drop=FALSE]
+    n<-object$cases
+    Gz <- object$Gz 
+    T_H <- 0
+    for (j in 1:n.groups){
+      m1 <- Gz[[j]] %*% kronecker(diag(rep(1,h2[j])),H)
+      m1 <- chol(t(m1) %*% m1)
+     T_H <- T_H + n * sum (forwardsolve(t(m1),as.vector(t(H)%*%zeta[[j]]))^2)}
+    df <- r*(h1)
+    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower=FALSE))
+    z} 
+   else {
+    F0 <-if(maxdir >= d) object$result[[d]]$summary$Test else
+          dr.iteration(object,object$Gz,d=d,...)$summary$Test
+    F1 <- dr.joint.test(object,hypothesis,d=d,...)$summary$Test
+    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower=FALSE))
+    }}
+    
+Gzcomp.pire <- function(object,numdir,span=NULL){
+    Gz <- NULL
+    n.groups <- length(object$group.stats)
+    pw <- sum(object$group.stats[[1]]$weights)/sum(object$weights)
+    Gz[[1]] <- Gzcomp(object$group.stats[[1]],numdir=numdir,span=span)/sqrt(pw)
+    if (n.groups > 1){
+      for (j in 2:n.groups){
+       pw <- sum(object$group.stats[[j]]$weights)/sum(object$weights)
+       Gz[[j]] <- 
+         Gzcomp(object$group.stats[[j]],numdir=numdir,span=span)/sqrt(pw)}}
+    Gz
+    }
+    
+"summary.pire" <- function (object, ...)
+{   ans <- object[c("call")]
+    result <- object$result
+    numdir <- length(result)
+    tests <- object$indep.test
+    for (d in 1:numdir) {
+       tests <- rbind(tests,result[[d]]$summary)}
+    rownames(tests) <- paste(0:numdir,"D vs"," > ",0:numdir,"D",sep="")
+    ans$method <- object$method
+    ans$nslices <- ans.sizes <- NULL
+    ans$n <-NULL
+    for (stats in object$group.stats){
+     ans$n <- c(ans$n,stats$n)
+     ans$nslices <- c(ans$nslices,stats$slice.info$nslices)
+     ans$sizes <- c(ans$sizes,stats$slice.info$slice.sizes)
+     }
+    ans$result <- object$result
+    for (j in 1:length(ans$result)) {ans$result[[j]]$B <- dr.basis(object,j)}
+    ans$weights <- dr.wts(object)
+    ans$test <- tests
+    class(ans) <- "summary.ire"
+    ans
+}
+    

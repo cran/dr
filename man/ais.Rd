@@ -1,11 +1,10 @@
 \name{ais}
-\alias{AIS}
 \alias{ais}
-\title{Australian athletes data}
-\non_function{}
+\docType{data}
+\title{Australian institute of sport data}
 \description{
 Data on 102 male and 100 female athletes collected at the Australian
-Institute of Sport, courtesy of Richard Telford and Ross Cunningham.
+Institute of Sport.
 }
 \format{This data frame contains the following columns:
  \describe{
@@ -33,9 +32,33 @@ Institute of Sport, courtesy of Richard Telford and Ross Cunningham.
     \item{Hg}{
  Hemoglobin
     }
+    \item{Ferr}{
+ plasma ferritin concentration
+    }
+    \item{BMI}{
+ body mass index, weight/(height)**2
+    }
+    \item{SSF}{
+ sum of skin folds
+    }
+    \item{Bfat}{
+ Percent body fat
+    }
+    \item{Label}{
+ Case Labels
+    }
+    \item{Sport}{
+ Sport
+    }
  }
 }
-\details{}
-\source{R. D. Cook and S. Weisberg (1999). \emph{Applied
-Statistics Including Computing and Graphics}.  New York:  Wiley.}
+
+\source{Ross Cunningham and Richard Telford}
+\references{
+S. Weisberg (2005).  \emph{Applied Linear Regression}, 3rd edition.  New York:
+Wiley, Section 6.4}
+
+\examples{
+data(ais)
+}
 \keyword{datasets}
