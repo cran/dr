@@ -17,7 +17,7 @@
 \usage{
 dr.direction(object, which, x)
 dr.directions(object, which, x)
-\method{dr.direction}{default}(object, which=1:object$numdir,x=dr.x(object))
+\S3method{dr.direction}{default}(object, which=1:object$numdir,x=dr.x(object))
 
 dr.basis(object,numdir)
 

@@ -5,14 +5,15 @@
 #############################################################################
 
 dr.fit.psave <-function(object,numdir=4,nslices=2,pool=FALSE,
-   slice.function=dr.slices,...){
+   slice.function=dr.slices,shao=FALSE,...){
+   if (shao==TRUE) dr.fit.psave1(object,numdir,nslices) else{
     object <- psave(object,nslices,pool,slice.function)
     object$result <- object$evectors[,1:numdir]
     object$numdir <- numdir
     object$method <- "psave"
     class(object) <- c("psave", "save", "dr")
     return(object)
-}
+}}
 
 # The function psave() is the core function which does the actual fitting and testing.
 # dr.fit.psave() and dr.coordinate.test.save() are just wrappers.
@@ -36,6 +37,7 @@ psave <- function(object,nslices,pool,slice.function) {
     slice <- if (length(nslices)==nG) nslices else rep(nslices,nG)
     info <- NULL
     M <- matrix(0,p,p)
+    A <- array(0,c(sum(slice),p,p))
     Sigma.pool <- matrix(0,p,p)
     Sigma <- array(0,c(p,p,nG))
     "%^%"<-function(A,n) { 
@@ -50,7 +52,6 @@ psave <- function(object,nslices,pool,slice.function) {
       Sigma[,,k] <- wt.cov(X[sel,],W[sel])
       Sigma.pool <- Sigma.pool + sum(W[sel]) *Sigma[,,k]/ n
     }
-    A <- array(0,c(sum(numslices),p,p))
     slice.info <- function() info
 # One group at a time
     psave1 <- function(z,y,w,slices) {
@@ -58,7 +59,7 @@ psave <- function(object,nslices,pool,slice.function) {
         n <- length(y)
         M <- matrix(0,p,p)
         A <- array(0,c(h,p,p))
-        for (j in 1:h) {
+        for (j in 1:slices$nslices) {
             slice.ind <- (slices$slice.indicator==j)
             IminusC <- if (sum(slice.ind)<3)  diag(rep(1,p))
                else diag(rep(1,p))-wt.cov(z[slice.ind,],w[slice.ind]) 
@@ -103,7 +104,7 @@ psave <- function(object,nslices,pool,slice.function) {
         }
         df <- (h - nG) * r * (r + 1)/2
         pv <- 1 - pchisq(st, df)
-        return(data.frame(Test=st,df=df,P.value=pv))
+        return(data.frame(Test=st,df=df,Pvalue=pv))
     }
 
     # The function coordinate.test() tests the marginal coordinate hypothesis.
@@ -137,12 +138,18 @@ dr.coordinate.test.psave <- function(object,hypothesis,d=NULL,...) {
     gamma <- if (class(hypothesis) == "formula")
         coord.hyp.basis(object, hypothesis)
         else as.matrix(hypothesis)
-    object$coordinate.test(gamma)
+    object$temp$coordinate.test(gamma)
 }
 
 summary.psave <- function(object,...) {
- ans <- summary.psir(object,...)
- ans$method <- "psave"
+ ans <- summary.dr(object,...)
+ ans$method <- "psir"
+ gps<- sizes <- NULL
+ for (g in 1:length(a1 <- object$slice.info())){
+   gps<- c(gps,a1[[g]][[2]])
+   sizes <- c(sizes,a1[[g]][[3]])}
+ ans$nslices <- paste(gps,collapse=" ")
+ ans$sizes <- sizes
  return(ans)
  }
  

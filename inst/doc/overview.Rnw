@@ -295,7 +295,7 @@ Also available are {\em coordinate tests}, in which we test to see
 if the central subspace is orthogonal to a prespecified subspace.
 These tests can be done marginally, with no assumptions about the
 dimension $d$, or for some methods conditionally, assuming $d$ is
-known. This is particularly useful for deciding is a predictor,
+known. This is particularly useful for deciding if a predictor,
 which represents a one-dimensional subspace, can be removed from a
 model. This allows the use of stepwise deletion of variables, as
 will be discussed in Section~\ref{sec:mct}.
@@ -331,14 +331,13 @@ response, or \verb|cbind(y1,y2)~x1+x2+x3| for a bivariate response.
 The argument \dcode{data} specifies an optional data frame for the
 variables.  The \dcode{subset} argument specifies which rows of the
 data are to be used in the analysis, as in \dcode{lm}.
-\dcode{na.action} is the missing value action; \dcode{na.omit}
-should also work.
+\dcode{na.action} is the missing value action.  The default \dcode{na.fail} will return from the function with no computing done.  Setting  \dcode{na.action=na.omit} will omit any rows with missing data and then proceed.
 
 The \dcode{group} argument, if used, requires a one-sided formula
 that evaluates to a list of a small number of levels.  Dimension
 reduction is done for each combination of the grouping variables.
-For example, \verb+group=~Sex+ would fit separately for each
-\dcode{Sex}, and \verb|group=~Sex:AgeClass| would fit separately for
+For example, \verb+group=\~Sex+ would fit separately for each
+\dcode{Sex}, and \verb+group=\~Sex:AgeClass+ would fit separately for
 each combination of \dcode{Sex} and \dcode{AgeClass}.  For this
 latter case, both \dcode{Sex} and \dcode{AgeClass} {\em must} be
 declared as factors.
@@ -504,8 +503,8 @@ dr.coordinate.test(s0,hypothesis=~.-log(RCC))
 The null hypothesis is specified by the formula given in the
 argument \dcode{hypothesis}.  In this case, the null hypothesis
 is that $\span(B)$ can be expressed as a linear combination of
-all the predictors (determined by the ``\verb+\~.+'') except
-for $\log(\vn{Hg})$.  The function recognizes that
+all the predictors (determined by the ``\verb+~.+'') except
+for $\log(\vn{RCC})$.  The function recognizes that
 \dcode{hypothesis} is a formula and called the function
 \dcode{coord.hyp.basis} to generate the $H$ matrix.
 Alternatively, the user can provide a matrix with $p$ rows and
@@ -548,7 +547,7 @@ The function \dcode{dr.step(object,scope,d,stop)} calls
 largest $p$-value according to the marginal coordinate test, or the
 conditional coordinate test (for \ire\ or for \sir\ or \save\
 without categorical predictors) if a non-null value of \dcode{d} is
-specified. The documentation for these functions given more
+specified. The documentation for these functions gives more
 details\footnote{The standard function \dcode{step} in \R\ is not a
 generic function and so it can't be used with \dr.}. The argument
 \dcode{scope} is a one-sided formula listing predictors that are
@@ -588,8 +587,8 @@ Partial \sir\ is fit in \dr\ using by adding an argument
 \dcode{group} to the call.  The value of \dcode{group} should be a
 one-sided formula. For example, if \dcode{Sex} was a factor with two
 levels and \dcode{AgeClass} a factor with three levels, then
-\dcode{group=~Sex} would condition on \dcode{Sex}, and
-\dcode{~Sex:AgeClass} would condition on all possible non-empty
+\verb+group=~Sex+ would condition on \dcode{Sex}, and
+\verb+~Sex:AgeClass+ would condition on all possible non-empty
 combinations of \dcode{Sex} and \dcode{AgeClass}.  An additional
 argument \dcode{pool} is also available on the call to \dcode{dr}.
 If \dcode{pool=TRUE}, then a pooled estimate of the variance of $X$
@@ -683,7 +682,7 @@ $\hat{M}$ is given by
 where $g_j$ is the sum of the weights in slice $j$; if all weights
 are equal, then the $g_j$ are just the number of observations in
 each slice. \save\ looks at second moment information and may miss
-first-moment information, particularly it may miss linear trends.
+first-moment information, in particularl it may miss linear trends.
 <<a2,echo=T>>=
 s2 <- update(s0,method="save")
 summary(s2)
@@ -816,9 +815,9 @@ recommended in general.
 If $\delta(Y_i=y)$ is the indicator function equal to one if $Y_i=y$
 and zero otherwise, then define
 \begin{eqnarray}
-n_y &=& \sum \delta(Y_i=y) \\
+n_y &=& \sum_i \delta(Y_i=y) \\
 f_y &=& n_y/n \\
-\hat{\xi}_y &=& (1/n_y) \sum_j \delta(Y_i=y) q_i\\
+\hat{\xi}_y &=& (1/n_y) \sum_i \delta(Y_i=y) q_i\\
 \hat{\xi} &=& (\hat{\xi}_1 ,\ldots, \hat{\xi}_h)
 \end{eqnarray}
 The vector $\hat{\xi}_y$ is the mean of the $q_i$ for which
@@ -1199,7 +1198,11 @@ reduction via inverse regression:  A minimum discrepancy approach.
 
 \item Shao, Y, Cook, RD and Weisberg, S (2007).  Marginal Tests
 with Sliced Average Variance Estimation.   {\em Biometrika}, 94,
-285--296
+285--296.
+
+\item Shao, Yongwu, Cook, R. D. and Weisberg, S. (2008, to appear, available on line). Partial
+central subspace and sliced average variance estimation. {\em
+Journal of Statistical Planning and Inference}.
 
 \item Weisberg, S (2002).  Dimension Reduction Regression in \R.
 {\em Journal of Statistical Software}, 2002, Volume 7, available

@@ -1,6 +1,7 @@
 \name{ais}
 \alias{ais}
 \docType{data}
+\non_function{}
 \title{Australian institute of sport data}
 \description{
 Data on 102 male and 100 female athletes collected at the Australian

@@ -36,4 +36,6 @@ plot(s0)
 plot(s0,mark.by.y=TRUE)
  }
 
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
 \keyword{ regression }% 

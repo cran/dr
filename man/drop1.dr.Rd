@@ -47,7 +47,6 @@ For other methods, this argument is ignored.}
 }
 \details{
 Suppose a \code{dr} object has \eqn{p=a+b} predictors, with \eqn{a} predictors specified in the \code{scope} statement.  
-
 \code{drop1} will compute either marginal coordinate tests (if \code{d=NULL})
 or conditional marginal coordinate tests (if \code{d} is positive) for dropping each of the \code{b} predictors not in the scope, and return p.values.
 The result is an object created from the original object with the predictor

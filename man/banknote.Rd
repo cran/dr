@@ -1,5 +1,6 @@
 \name{banknote}
 \alias{banknote}
+\non_function{}
 \title{Swiss banknote data}
 \description{
 Six measurements made on 100 genuine

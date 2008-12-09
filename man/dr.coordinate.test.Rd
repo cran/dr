@@ -20,7 +20,7 @@ dr.test(object, numdir, ...)
 
 dr.coordinate.test(object, hypothesis,d,chi2approx,\dots)
 
-\method{dr.joint.test}{ire}(object, hypothesis, d = NULL,\dots)
+\S3method{dr.joint.test}{ire}(object, hypothesis, d = NULL,\dots)
 }
 \arguments{
 \item{object}{ The name of an object returned by a call to \code{dr}.}

@@ -1,6 +1,6 @@
 Package: dr
-Version: 3.0.2
-Date:  2007/10/11
+Version: 3.0.3
+Date:  2008/12/09
 Title: Methods for dimension reduction for regression
 Author: Sanford Weisberg <sandy@stat.umn.edu>,
 Maintainer: Sanford Weisberg <sandy@stat.umn.edu>
@@ -13,7 +13,8 @@ Description: Functions, methods, and datasets for fitting dimension
  deletion of predictors, is also included.  Also included is
  code for computing permutation tests of dimension.  Adding additional
  methods of estimating dimension is straightforward.  
- For documentation, see the vignette in the package.
-License: GPL (>= 2)
+ For documentation, see the vignette in the package.  Version 3.0.1 corrects
+ an error in psir and psave first detected with R 2.8.0.
+License: GPL version 2 or newer
 URL: http://www.r-project.org
-Packaged: Thu Oct 11 08:00:24 2007; sandy
+Packaged: Wed Dec 10 08:54:05 2008; sandy

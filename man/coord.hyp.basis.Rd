@@ -40,5 +40,5 @@ s1 <- dr(LBM~log(Ht)+log(Wt)+log(RCC)+log(WCC)+log(Hc)+log(Hg),
          data=ais,method="sir")
 coord.hyp.basis(s1,~.-log(Wt)-log(Hg))
  }
-
+            
 \keyword{ internal }
