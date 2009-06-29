@@ -5,15 +5,14 @@
 #############################################################################
 
 dr.fit.psave <-function(object,numdir=4,nslices=2,pool=FALSE,
-   slice.function=dr.slices,shao=FALSE,...){
-   if (shao==TRUE) dr.fit.psave1(object,numdir,nslices) else{
+   slice.function=dr.slices,...){
     object <- psave(object,nslices,pool,slice.function)
     object$result <- object$evectors[,1:numdir]
     object$numdir <- numdir
     object$method <- "psave"
     class(object) <- c("psave", "save", "dr")
     return(object)
-}}
+}
 
 # The function psave() is the core function which does the actual fitting and testing.
 # dr.fit.psave() and dr.coordinate.test.save() are just wrappers.
@@ -142,14 +141,8 @@ dr.coordinate.test.psave <- function(object,hypothesis,d=NULL,...) {
 }
 
 summary.psave <- function(object,...) {
- ans <- summary.dr(object,...)
- ans$method <- "psir"
- gps<- sizes <- NULL
- for (g in 1:length(a1 <- object$slice.info())){
-   gps<- c(gps,a1[[g]][[2]])
-   sizes <- c(sizes,a1[[g]][[3]])}
- ans$nslices <- paste(gps,collapse=" ")
- ans$sizes <- sizes
+ ans <- summary.psir(object,...)
+ ans$method <- "psave"
  return(ans)
  }
  

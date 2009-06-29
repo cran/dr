@@ -117,7 +117,7 @@ psir <- function(object,nslices,pool,slice.function) {
             wts <- cbind(wts,tp$wts)
         }
         wts <- rep(wts,r)
-        testr <- dr.pvalue(wts[wts>1e-5],st,a=chi2approx)
+        testr <- dr.pvalue(wts[wts>1e-5],st,a=object$chi2approx)
         df <- testr$df.adj
         pv <- testr$pval.adj
         return(data.frame(cbind(Test=st,P.value=pv)))
@@ -137,7 +137,7 @@ dr.coordinate.test.psir <- function(object,hypothesis,d=NULL,...) {
     object$coordinate.test(gamma)
 }
     
-summary.psir <- function(object,...) {
+summary.psir <- function(object,...) {  browser()
  ans <- summary.dr(object,...)
  ans$method <- "psir"
  gps<- sizes <- NULL
@@ -148,6 +148,37 @@ summary.psir <- function(object,...) {
  ans$sizes <- sizes
  return(ans)
  }
+ 
+summary.psir <- function (object, ...)
+{   z <- object
+    ans <- z[c("call")]
+    nd <- min(z$numdir,length(which(abs(z$evalues)>1.e-15)))
+    ans$evectors <- z$evectors[,1:nd]
+    ans$method <- "psir"
+    gps<- sizes <- NULL
+    for (g in 1:length(a1 <- object$slice.info())){
+      gps<- c(gps,a1[[g]][[2]])
+      sizes <- c(sizes,a1[[g]][[3]])}
+    ans$nslices <- paste(gps,collapse=" ")
+    ans$sizes <- sizes
+    ans$weights <- z$weights
+    sw <- sqrt(ans$weights)
+    y <- z$y #dr.y(z)
+    ans$n <- z$cases #NROW(z$model)
+    ols.fit <- qr.fitted(object$qr,sw*(y-mean(y)))
+    angles <- cosangle(dr.direction(object),ols.fit)
+    angles <- if (is.matrix(angles)) angles[,1:nd] else angles[1:nd]
+    if (is.matrix(angles)) dimnames(angles)[[1]] <- z$y.name
+    angle.names <- if (!is.matrix(angles)) "R^2(OLS|dr)" else
+                        paste("R^2(",dimnames(angles)[[1]],"|dr)",sep="")
+    ans$evalues <-rbind (z$evalues[1:nd],angles)
+    dimnames(ans$evalues)<-
+     list(c("Eigenvalues",angle.names),
+          paste("Dir", 1:NCOL(ans$evalues), sep=""))
+    ans$test <- dr.test(object,nd)
+    class(ans) <- "summary.dr"
+    ans
+}
  
 drop1.psir <- function(object,scope=NULL,...){
     drop1.dr(object,scope,...) }

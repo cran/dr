@@ -1042,10 +1042,10 @@ function (formula, data = list(), subset, na.action=na.fail,
 ###################################################################
 ## drop1 methods 
 ###################################################################
-drop1.dr <-
+drop1 <-
 function (object, scope = NULL, update = TRUE, test = "general", 
     trace=1, ...) 
-{               
+{
     keep <- if (is.null(scope)) 
         NULL
     else attr(terms(update(object$terms, scope)), "term.labels")
@@ -1079,7 +1079,7 @@ function (object, scope = NULL, update = TRUE, test = "general",
         TRUE
     else FALSE
     if (stopp == TRUE) {
-        if(trace > 0) cat("\nStopping Criterion Met\n")
+        cat("\nStopping Criterion Met\n")
         object$stop <- TRUE
         object
     }
@@ -1092,7 +1092,7 @@ function (object, scope = NULL, update = TRUE, test = "general",
       
 dr.step <-
 function (object, scope = NULL, d = NULL, minsize = 2, stop = 0, 
-     trace=1,...) 
+     ...) 
 {
     if (is.null(object$stop)) {
         object$stop <- stop
@@ -1106,22 +1106,21 @@ function (object, scope = NULL, d = NULL, minsize = 2, stop = 0,
         else attr(terms(update(object$terms, scope)), "term.labels")
         all <- attr(object$terms, "term.labels")
         if (length(keep) >= length(all)) {
-            if(trace > 0) cat("\nNo more variables to remove\n")
+            cat("\nNo more variables to remove\n")
             object
         }
         else if (length(all) <= minsize) {
-            if (trace > 0) cat("\nMinimum size reached\n")
+            cat("\nMinimum size reached\n")
             object$numdir <- minsize
             object
         }
         else {
             if (dim(object$x)[2] <= minsize) {
-                if (trace > 0) cat("\nMinimum size reached\n")
                 object}
-            else {   
-                obj1 <- drop1(object, scope = scope, d = d, trace=trace, ...)
-                dr.step(obj1, scope = scope, d = d, stop = stop,
-                       trace=trace, ...)
+            else {
+                obj1 <- drop1(object, scope = scope, d = d, ...)
+                dr.step(obj1, scope = scope, d = d, numdir = numdir, 
+                  stop = stop, ...)
             }
         }
     }

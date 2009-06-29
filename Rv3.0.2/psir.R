@@ -17,7 +17,7 @@ dr.fit.psir <-function(object,numdir=4,nslices=2,pool=FALSE,
 # 1. evectors and evalues: the estimated partial central subspace and
 #    corresponding eigenvalues.
 # 2. test(): the function to test marginal dimensional hypothesis.
-# 3. coordinate.test(): the function to test marginal coordinate hypothesis.
+# 3. coordinate.test(): the function to test coordinate hypothesis.
 psir <- function(object,nslices,pool,slice.function) {
     Y <- dr.y(object)
     X <- dr.x(object)
@@ -34,7 +34,11 @@ psir <- function(object,nslices,pool,slice.function) {
             (eg$vectors) %*% diag(abs(eg$values)^n) %*% t(eg$vectors) }}
     Sigma.pool <- matrix(0,p,p)
     Sigma <- array(0,c(p,p,nG))
-    wt.cov <- function(x,w) cov(x)*(length(w)-1)/length(w)
+    wt.cov <- function(x,w){ 
+      xbarw <- apply(x,2,function(x) sum(w*x)/sum(w))
+      xc <- t(apply(x,1,function(x) x-xbarw))
+      (1/sum(w)) * t(xc) %*% apply(xc,2,function(x) w*x)
+      }
     slice <- if (length(nslices)==nG) nslices else rep(nslices,nG)
     info <- NULL
     for (k in 1:nG){
@@ -60,14 +64,14 @@ psir <- function(object,nslices,pool,slice.function) {
             else mu <- apply(z[slice.sel,],2,mean)
             zmeans[,j] <- sqrt(sum(slice.sel)/n)*mu
         }
-        # The function stat() computes the marginal coorindate test statistic for the group,
+        # The function stat() computes the coorindate test statistic for the group,
         stat <- function(gamma) {
             r <- p - dim(gamma)[2]
             gamma <- Scale %^% (1/2) %*% gamma
             h <- info[[k]]$nslices
             H <- as.matrix(qr.Q(qr(gamma), complete = TRUE)[, (p - r + 1):p])
             st <- sum((t(H)%*%zmeans)^2)*n
-            wts <- rep(1,h-1)
+            wts <- rep(1,min(p,h-1))
             wts[1:min(p,h-1)] <- 1-svd(zmeans)$d[1:min(p,h-1)]^2
             return(list(st=st,wts=wts))
         }
@@ -78,7 +82,9 @@ psir <- function(object,nslices,pool,slice.function) {
     for (k in 1:nG){zmeans <- cbind(zmeans,psir1(k)$zmeans)}
 # The following code estimates the partial central mean subspace.
     D <- svd(zmeans,p)
-    evectors <- Sigma.pool%^%(-1/2)%*%D$u
+    evectors <- 
+     apply(Sigma.pool%^%(-1/2)%*%D$u,2,function(x)x/sqrt(sum(x^2)))
+    
     dimnames(evectors) <- 
          list(attr(dr.x(object),"dimnames")[[2]],
               paste("Dir",1:dim(evectors)[2],sep=""))
@@ -97,7 +103,7 @@ psir <- function(object,nslices,pool,slice.function) {
         dimnames(z)<-list(rr,c("Stat","df","p.value")) 
         return(z)
     }
-# The function coordinate.test() tests the marginal coordinate hypothesis.
+# The function coordinate.test() tests the coordinate hypothesis.
 # The test statistic is constructed by summing up the test statistics in each group.
 # The weights are contructed by combining all the weights in each group.
 # Function is public.
@@ -111,13 +117,13 @@ psir <- function(object,nslices,pool,slice.function) {
             wts <- cbind(wts,tp$wts)
         }
         wts <- rep(wts,r)
-        testr <- dr.pvalue(wts[wts>1e-5],st,a=chi2approx)
+        testr <- dr.pvalue(wts[wts>1e-5],st,a=object$chi2approx)
         df <- testr$df.adj
         pv <- testr$pval.adj
-        return(data.frame(cbind(Test=st,df=df,Pvalue=pv)))
+        return(data.frame(cbind(Test=st,P.value=pv)))
     }
     return(c(object, list(evectors=evectors,
-       evalues=D$d^2,info=info,slice.info=slice.info,
+       evalues=D$d^2,slice.info=slice.info,
        test=test,coordinate.test=coordinate.test)))
 }
 

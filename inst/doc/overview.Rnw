@@ -171,10 +171,10 @@ function, a function called \dcode{dr.step} is included here.
 \item[Categorical predictors] Chiaromonte, Cook and Li (2002)
 suggested how dimension reduction methods could be extended to
 problems with categorical predictors.  This methodology is available
-in \dr\ using the \dcode{groups} keyword.  For example,
+in \dr\ using the \dcode{groups} argument.  For example,
 \verb+group = ~Sex+
 used a one-sided formula to specify that the levels of a
-variable \dcode{Sex} provides a grouping variable. This keyword is
+variable \dcode{Sex} provides a grouping variable. This argument is
 recognized for \sir, Chiaromonte, Cook and Li (2002), \save, Shao,
 Cook and Weisberg (submitted), and for \ire, Wen and Cook (2007).
 \end{description}
@@ -336,8 +336,8 @@ data are to be used in the analysis, as in \dcode{lm}.
 The \dcode{group} argument, if used, requires a one-sided formula
 that evaluates to a list of a small number of levels.  Dimension
 reduction is done for each combination of the grouping variables.
-For example, \verb+group=\~Sex+ would fit separately for each
-\dcode{Sex}, and \verb+group=\~Sex:AgeClass+ would fit separately for
+For example, \verb+group=~Sex+ would fit separately for each
+\dcode{Sex}, and \verb+group=~Sex:AgeClass+ would fit separately for
 each combination of \dcode{Sex} and \dcode{AgeClass}.  For this
 latter case, both \dcode{Sex} and \dcode{AgeClass} {\em must} be
 declared as factors.
@@ -435,7 +435,7 @@ summary(s0 <- dr(LBM~log(SSF)+log(Wt)+log(Hg)+log(Ht)+log(WCC)+log(RCC)+
 @
 This output is not identical to the output for \sir\ obtained from
 previous versions of \dr\ because the defaults for forming slices
-have changed, and the labels to sections of the output have changes
+have changed, and the labels of sections of the output have changes
 as well. We have set the arguments
 \dcode{slice.function=dr.slices.arc}, \dcode{nslices=8} and
 \dcode{chi2approx="wood"} to get results that agree with Table~5 in
@@ -579,12 +579,11 @@ In the context of \sir, we can estimate a matrix $\hat{M}_g$ of the
 form (\ref{eq:sir}) separately for of the $g$ levels of $G$, combine
 them, and then estimate the central subspace from the eigenvectors
 corresponding to larger eigenvalues of the combined $\hat{M}$. Using
-the ideas in Cook (2004), Y. Shao has provided marginal and
-conditional coordinate hypothesis tests for partial \sir, which are
-included in \dr\ but are as yet unpublished.
+the ideas in Cook (2004), Shao, Cook and Weisberg (2009) provide marginal and
+conditional coordinate hypothesis tests for partial \sir.
 
 Partial \sir\ is fit in \dr\ using by adding an argument
-\dcode{group} to the call.  The value of \dcode{group} should be a
+\dcode{group} in the call.  The value of \dcode{group} should be a
 one-sided formula. For example, if \dcode{Sex} was a factor with two
 levels and \dcode{AgeClass} a factor with three levels, then
 \verb+group=~Sex+ would condition on \dcode{Sex}, and
@@ -596,7 +595,7 @@ is used in each of the $g$ groups to compute the standardized
 predictors.  The default is \dcode{pool=FALSE}, in which the
 variance is estimated separately in each group.  Chiaromonte {\em et
 al.} used the former choice to get the marginal dimension tests,
-while Shao uses the latter choice to get the coordinate hypothesis
+while Shao {\em et al.} uses the latter choice to get the coordinate hypothesis
 tests.
 <<echo=TRUE>>=
 summary(s1 <- update(s0, group=~Sex))
@@ -663,7 +662,7 @@ plot(object,which=1:object$numdir,mark.by.y=FALSE,
 \end{verbatim}
 This is the plot method for \dr, which extracts by default the first
 \dcode{numdir} direction vectors and the response, and plots them
-using the \dcode{plot.method}, which by default is \dcode{pairs}.
+using the \dcode{plot.method}, which by default is \dcode{pairs}.  Additional arguments are passed to the plotting method.
 
 
 \section{SAVE}\label{sec:save}
@@ -682,7 +681,7 @@ $\hat{M}$ is given by
 where $g_j$ is the sum of the weights in slice $j$; if all weights
 are equal, then the $g_j$ are just the number of observations in
 each slice. \save\ looks at second moment information and may miss
-first-moment information, in particularl it may miss linear trends.
+first-moment information, in particular it may miss linear trends.
 <<a2,echo=T>>=
 s2 <- update(s0,method="save")
 summary(s2)
@@ -892,10 +891,10 @@ for setting $\hat{\psi}_y$:
 \item For computations under the assumption $d>0$,
 initially set $\hat{\psi}_y = \hat{\xi}_y$, and obtain an estimator
 $B$.
-\item If $d>0$ and we set the keyword \dcode{steps} to equal a
+\item If $d>0$ and we set the argument \dcode{steps} to equal a
 positive integer, first compute step 2, and then repeat with
 $\hat{\psi} = P_B{\hat{\xi}}$.  If \dcode{steps} is greater than
-one, repeat the number of times indicated by the keyword; one step
+one, repeat the number of times indicated by the argument; one step
 seems to be adequate.
 \end{enumerate}
 
@@ -931,7 +930,7 @@ and Ni (2005), the following can be used:
            slice.function=dr.slices.arc,itmax=200,steps=1,eps=1.e-6))
 @
 The call to the \dr\ function is the same as for the other dimension
-reduction methods, except that the keyword \dcode{method="ire"}. We
+reduction methods, except that the argument \dcode{method="ire"}. We
 have specified \dcode{nslices=8} to match Cook and Ni, rather than
 use the default of $\max(8,p+3)$, and have used
 \dcode{dr.slices.arc} to get slices, again to match Cook and Ni. The
@@ -1158,7 +1157,7 @@ for \ire.
 Cindy Yu, Jorge de la Vega worked on earlier versions of the
 package. Yongwu Shao wrote most of the new dimension tests for \sir\
 and \save.  The code for \ire\ is adapted freely from Liqiang Ni's
-program written for Arc.  The code of \pire\ is essentially a
+program written for Arc.  The code for \pire\ is essentially a
 modification of Ni's program.  Kurt Hornik was very helpful in
 getting the package to pass all the tests in \R.
 
@@ -1200,7 +1199,7 @@ reduction via inverse regression:  A minimum discrepancy approach.
 with Sliced Average Variance Estimation.   {\em Biometrika}, 94,
 285--296.
 
-\item Shao, Yongwu, Cook, R. D. and Weisberg, S. (2008, to appear, available on line). Partial
+\item Shao, Yongwu, Cook, R. D. and Weisberg, S. (2009, to appear, available on line). Partial
 central subspace and sliced average variance estimation. {\em
 Journal of Statistical Planning and Inference}.
 

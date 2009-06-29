@@ -143,7 +143,6 @@ dr.test <- function(object, numdir,...){  UseMethod("dr.test")}
 dr.test.default <-function(object, numdir,...) {NULL}
 dr.coordinate.test <- function(object,hypothesis,d,chi2approx,...)
                      {  UseMethod("dr.coordinate.test")  }
-dr.coord.test <- function(object,...){ UseMethod("dr.coordinate.test")}
 dr.coordinate.test.default <-
        function(object, hypothesis,d,chi2approx,...) {NULL}
 dr.joint.test <- function(object,...){ UseMethod("dr.joint.test")}
@@ -163,7 +162,7 @@ dr.M.ols <- function(object,...) {
 #####################################################################
 
 dr.M.sir <-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
-    sel <- if(is.null(sel))1:length(dr.y(object)) else sel
+    sel <- if(is.null(sel))1:dim(dr.z(object))[1] else sel
     z <- dr.z(object)[sel,]
     y <- dr.y(object)[sel]
 # get slice information    
@@ -569,16 +568,17 @@ function(z,use="color",values=NULL,color.fn=rainbow,na.action="na.use") {
 #
 ###################################################################
 "print.dr" <-
-function(x, digits = max(3, getOption("digits") - 3), width=50, ...)
+function(x, digits = max(3, getOption("digits") - 3), width=50, 
+    numdir=x$numdir, ...)
 {
     fout <- deparse(x$call,width.cutoff=width)
     for (f in fout) cat("\n",f)
     cat("\n")
     cat("Estimated Basis Vectors for Central Subspace:\n")
     evectors<-x$evectors
-    print.default(evectors)
+    print.default(evectors[,1:numdir])
     cat("Eigenvalues:\n")
-    print.default(x$evalues)
+    print.default(x$evalues[1:numdir])
     cat("\n")
     invisible(x)
 }
@@ -779,8 +779,10 @@ wood.pvalue <- function (coef, f, tol=0.0, print=FALSE){
 #
 #########################################################################
 
-dr.permutation.test <- function(object,npermute=50,numdir=object$numdir,
-                                permute.weights=TRUE) {
+dr.permutation.test <- function(object,npermute=50,numdir=object$numdir) {
+ if (inherits(object,"ire")) stop("Permutation tests not implemented for ire")
+ else{
+   permute.weights <- TRUE
    call <- object$call
    call[[1]] <- as.name("dr.compute")
    call$formula <- call$data <- call$subset <- call$na.action <- NULL
@@ -818,7 +820,7 @@ dr.permutation.test <- function(object,npermute=50,numdir=object$numdir,
    ans<-list(summary=ans1,npermute=npermute)
    class(ans) <- "dr.permutation.test"
    ans
-   }
+   }}
 
 "print.dr.permutation.test" <-
 function(x, digits = max(3, getOption("digits") - 3), ...)
@@ -997,7 +999,7 @@ cosangle1 <- function(mat,vec) {
 #####################################################################
 dr.weights <-
 function (formula, data = list(), subset, na.action=na.fail, 
-   covmethod="mve",sigma=1,nsamples=NULL,...)
+   sigma=1,nsamples=NULL,...)
 {
 # Create design matrix from the formula and call dr.estimate.weights
     mf1 <- match.call(expand.dots=FALSE)
@@ -1009,7 +1011,10 @@ function (formula, data = list(), subset, na.action=na.fail,
     x <- model.matrix(mt, mf)
     int <- match("(Intercept)", dimnames(x)[[2]], nomatch=0)
     if (int > 0) x <- x[, -int, drop=FALSE] # drop the intercept from X
-    z <- robust.center.scale(x,method=covmethod,...)
+    ans <- cov.rob(x, ...) 
+    m <- ans$center
+    s<-svd(ans$cov)
+    z<-sweep(x,2,m) %*% s$u %*% diag(1/sqrt(s$d))
     n <- dim(z)[1]   # number of obs
     p <- dim(z)[2]   # number of predictors
     ns <- if (is.null(nsamples)) 10*n else nsamples
@@ -1028,32 +1033,11 @@ function (formula, data = list(), subset, na.action=na.fail,
     w1 <- rep(NA,length=dim(eval(mf1))[1])
     w1[subset] <- w
     return(w1)}}
-
-
-robust.center.scale<- function (x,method, ...) { 
-# This function takes an n by p matrix x, finds a robust center m and scale
-# S, and then returns (x-1t(m)) %*% S^(-1/2).  
-# This method uses the cov.rob method in the MASS package
-# Additional args to the function are passed to cov.rob.
-#
-# make sure the library is loaded
- if(version$language == "R")
-   {if(!require(MASS)){ 
-      stop("MASS package not in library, but is required for this function")}} else
-   {if(!exists("covRob")) library(MASS)}
- ans <- cov.rob(x,method=method, ...) 
- m <- if (method == "classical") apply(x,2,"median") else ans$center
- s<-svd(ans$cov)
- sweep(x,2,m) %*% s$u %*% diag(1/sqrt(s$d))}
  
 ###################################################################
-## drop1 methods for sir and for dr in general
+## drop1 methods 
 ###################################################################
     
-drop1.save <- function(object,scope=NULL,test=c("general","normal"),...){
-    test <- match.arg(test)
-    drop1.dr(object,scope,test=test,...) }
-
 drop1.dr <-
 function (object, scope=NULL, update=TRUE, test = "general",...) 
 {
@@ -1091,14 +1075,14 @@ dr.step <-
 function(object,scope=NULL,d=NULL,numdir=object$numdir,stop=0,...) {
    if(is.null(object$stop)){ object$stop <- stop }
    if(object$stop == TRUE) object else {
-    numdir <- object$numdir
+    numdir <- max(2,numdir)
     keep <- if(is.null(scope)) NULL else
          attr(terms(update(object$terms,scope)),"term.labels")
     all <- attr(object$terms,"term.labels")
     if (length(keep) >= length(all) | length(all) <= numdir) object else {
     if(dim(object$x)[2] <= numdir) object else {
       obj1 <- drop1(object,scope=scope,d=d,...)
-      dr.step(obj1,scope=scope,d=d,stop=stop,...)}}}}
+      dr.step(obj1,scope=scope,d=d,numdir=numdir,stop=stop,...)}}}}
  
 #####################################################################
 ##
@@ -1419,9 +1403,6 @@ dr.direction.ire <-
     scale(x,center=TRUE,scale=FALSE) %*% dr.basis(object,d)
     }
    
-drop1.ire <- function(object,scope=NULL,test="default",...){
-    drop1.dr(object,scope,test,...) }
-
 #############################################################################
 # partial ire --- see Wen and Cook (in press), Optimal sufficient dimension
 # reduction in regressions with categorical predictors. Journal of Statistical

@@ -7,9 +7,11 @@ This function implements backward elimination using a \code{dr} object for which
 a \code{dr.coordinate.test} is defined, currently for SIR SAVE, IRE and PIRE.
 }
 \usage{
-dr.step(object,scope=NULL,d=NULL,numdir=object$numdir,stop=0,...)
+dr.step(object,scope=NULL,d=NULL,minsize=2,stop=0,trace=1,...)
 
-\method{drop1}{dr}(object, scope = NULL,  update=TRUE, test="general",\dots)
+\method{drop1}{dr}(object, scope = NULL,  update=TRUE,
+test="general",trace=1,\dots)
+
 
 }
 \arguments{
@@ -26,8 +28,7 @@ conditioning. This is currently available only for methods \code{sir},
 \code{save} without categorical predictors, or for 
 \code{ire} with or without categorical predictors.}
 
-\item{numdir}{The maximum permitted value for the dimension \eqn{d}{d}.
-The smallest number of predictors allowed is \code{numdir}.}
+\item{minsize}{Minimum subset size, must be greater than or equal to 2.}
 
 \item{stop}{Set stopping criterion:  continue removing variables until
 the p-value for the next variable to be removed is less than stop.  The
@@ -42,6 +43,9 @@ the computations for IRE but has little effect on SAVE and SIR.}
 to remove for \code{method="save"} only. \code{"normal"} assumes normal 
 predictors, \code{"general"} assumes elliptically contoured predictors. 
 For other methods, this argument is ignored.}
+
+\item{trace}{If positive, print informative output at each step, the default.
+If trace is 0 or false, suppress all printing.}
 
 \item{\dots}{Additional arguments passed to \code{dr.coordinate.test}.}
 }

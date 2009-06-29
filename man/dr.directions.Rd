@@ -17,7 +17,7 @@
 \usage{
 dr.direction(object, which, x)
 dr.directions(object, which, x)
-\S3method{dr.direction}{default}(object, which=1:object$numdir,x=dr.x(object))
+\S3method{dr.direction}{default}(object, which=NULL,x=dr.x(object))
 
 dr.basis(object,numdir)
 
@@ -28,8 +28,7 @@ dr.basis(object,numdir)
   \item{object}{ a dimension reduction regression object created by dr. }
   \item{which}{ select the directions wanted, default is all directions.
 If method is \code{ire}, then the directions depend on the value of the
-dimension you select.  This method will assume the dimension is the
-maximum value of \code{which}. }
+dimension you select.  If omitted, select all directions. }
   \item{numdir}{The number of basis vectors to return}
   \item{x}{select the X matrix, the default is \code{dr.x(object)}}
 }
