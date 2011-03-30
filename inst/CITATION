@@ -1,0 +1,17 @@
+citHeader("To cite the dr package in publications use:")
+
+citEntry(entry = "Article",
+  title="Dimension reduction regression in R",
+  author="S. Weisberg",
+  journal="Journal of Statistical Software",
+  volume="7",
+  number="1",
+  pages="1--22",
+  year="2002",
+
+  textVersion =
+  paste("Sanford Weisberg (2002).",
+        "Dimension Reduction Regression in R.",
+        "Journal of Statistical Software, 7, 1-22",
+        "URL: http://www.jstatsoft.org")
+)

@@ -1179,7 +1179,7 @@ sufficient dimension reduction.  {\em Annals of Statistics}, 32,
 
 \item Bura E and Cook, RD (2001).  Extending sliced inverse regression:
 The weighted chi-squared test. {\em J. Amer. Statist. Assoc.} 96
-996–1003.
+996--1003.
 
 \item Cook, RD, and Li, B (2002).  Dimension reduction for conditional
 mean in regression.  {\em Annals of Statistics}, 30, 455-474.

@@ -1,0 +1,8 @@
+3/27/09
+
+1.  Modified dr.M.sir so if slice has only one observation the matrix of data
+is not coerced to be a vector.
+
+TO DO:
+For ire, apparently we need the number of obs per slice to be >= p
+For save, we apparently need the number of obs per slice to be >= 2

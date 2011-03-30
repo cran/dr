@@ -104,13 +104,13 @@ dr.evalues.default <- function(object) object$evalues
 #####################################################################
 dr.fit <- function(object,numdir=4,...) UseMethod("dr.fit")
 
-dr.fit.default <-function(object,numdir=4,...){ 
+dr.fit.default <-function(object,numdir=4,...){  
     M <- dr.M(object,...)  # Get the kernel matrix M, method specific
     D <- if(dim(M$M)[1] == dim(M$M)[2]) eigen(M$M) else {
           if(ncol(M$M)==1) eigen(M$M %*% t(M$M)) else eigen(t(M$M) %*% M$M)} 
     or <- rev(order(abs(D$values)))
     evalues <- D$values[or]
-    raw.evectors <- D$vectors[,or]  
+    raw.evectors <- D$vectors[,or] 
     evectors <- backsolve(sqrt(object$cases)*dr.R(object),raw.evectors)
     evectors <- if (is.matrix(evectors)) evectors else matrix(evectors,ncol=1)
     evectors <- apply(evectors,2,function(x) x/sqrt(sum(x^2)))
@@ -162,7 +162,7 @@ dr.M.ols <- function(object,...) {
 #####################################################################
 
 dr.M.sir <-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
-    sel <- if(is.null(sel))1:dim(dr.z(object))[1] else sel
+    sel <- if(is.null(sel))1:length(dr.y(object)) else sel
     z <- dr.z(object)[sel,]
     y <- dr.y(object)[sel]
 # get slice information    
@@ -170,14 +170,15 @@ dr.M.sir <-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
     slices <- slice.function(y,h)
     #slices<- if(is.null(slice.info)) dr.slices(y,h) else slice.info
 # initialize slice means matrix
-    zmeans <- matrix(0,slices$nslices,NCOL(z))
+    zmeans <- matrix(0,slices$nslices,NCOL(z))   
     slice.weight <- rep(0,slices$nslices)  # NOT rep(0,NCOL(z))
     wts <- dr.wts(object)
 # compute weighted means within slice 
     wmean <- function (x, wts) { sum(x * wts) / sum (wts) }
     for (j in 1:slices$nslices){
       sel <- slices$slice.indicator==j
-      zmeans[j,]<- apply(z[sel,],2,wmean,wts[sel])
+      if (j == 8) browser()
+      zmeans[j,]<- apply(z[sel,,drop=F],2,wmean,wts[sel])
       slice.weight[j]<-sum(wts[sel])}
 # get M matrix for sir
     M <- t(zmeans) %*% apply(zmeans,2,"*",slice.weight)/ sum(slice.weight)
@@ -275,7 +276,7 @@ dr.M.save<-function(object,nslices=NULL,slice.function=dr.slices,sel=NULL,...) {
                  var(sweep(x, 1, sqrt(w), "*"))}
     for (j in 1:slices$nslices) {
         ind <- slices$slice.indicator == j
-        IminusC <- diag(rep(1, NCOL(z))) - wvar(z[ind, ], wts[ind])
+        IminusC <- diag(rep(1, NCOL(z))) - wvar(z[ind, ,drop=FALSE], wts[ind])
         ws[j] <- sum(wts[ind])
         A[j,,] <- sqrt(ws[j])*IminusC  # new
         M <- M + ws[j] * IminusC %*% IminusC
@@ -868,7 +869,7 @@ dr.slices <- function(y,nslices) {
       z<-unique(y)
       if (length(z) > h) dr.slice2(y,h) else dr.slice1(y,sort(z))}
   dr.slice1 <- function(y,u){
-      z <- sizes <- 0
+      z <- sizes <- ns <- 0
       for (j in 1:length(u)) {
           temp <- which(y==u[j])
           z[temp] <- j
@@ -1135,7 +1136,7 @@ dr.fit.ire <-function(object,numdir=4,nslices=NULL,slice.function=dr.slices,
     n <- object$cases
     weights <- object$weights
     p <- dim(z)[2]
-    numdir <- min(numdir,p-1)
+    numdir <- min(numdir,p-1)               
     h <- slices$nslices
     xi <- matrix(0,nrow=p,ncol=slices$nslices)
     for (j in 1:h){
@@ -1148,7 +1149,8 @@ dr.fit.ire <-function(object,numdir=4,nslices=NULL,slice.function=dr.slices,
     object$zeta <- xi %*% diag(f) %*% An
     rownames(object$zeta) <- paste("Q",1:dim(z)[2],sep="")
     ans <- NULL
-    if (tests == TRUE) {
+
+    if (tests == TRUE) {    
       object$indep.test <- dr.test(object,numdir=0,...)
       Gz <- Gzcomp(object,numdir)  # This is the same for all numdir > 0
       for (d in 1:numdir){
