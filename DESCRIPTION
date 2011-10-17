@@ -1,12 +1,11 @@
 Package: dr
-Version: 3.0.6
-Date: 2011/03/30
+Version: 3.0.7
+Date: 2011/10/17
 Title: Methods for dimension reduction for regression
 Author: Sanford Weisberg <sandy@stat.umn.edu>,
 Maintainer: Sanford Weisberg <sandy@stat.umn.edu>
 Depends: MASS
 LazyData: yes
-LazyLoad: no
 Description: Functions, methods, and datasets for fitting dimension
         reduction regression, using slicing (methods SAVE and SIR),
         Principal Hessian Directions (phd, using residuals and the
@@ -15,11 +14,11 @@ Description: Functions, methods, and datasets for fitting dimension
         variety of tests, and stepwise deletion of predictors, is also
         included.  Also included is code for computing permutation
         tests of dimension.  Adding additional methods of estimating
-        dimension is straightforward. For documentation, see the
+        dimension is straightforward.  For documentation, see the
         vignette in the package.  With version 3.0.4, the arguments for
         dr.step have been modified.
 License: GPL (>= 2)
 URL: http://www.r-project.org
-Packaged: 2011-03-30 18:38:11 UTC; sandy
+Packaged: 2011-10-19 13:00:01 UTC; sandy
 Repository: CRAN
-Date/Publication: 2011-03-31 15:32:10
+Date/Publication: 2011-10-19 13:28:32

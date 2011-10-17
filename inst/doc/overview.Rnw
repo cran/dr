@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{url,Sweave,html,alltt}
+\usepackage{url,Sweave}
 %%\VignetteIndexEntry{Overview and Examples}
 \newcommand{\R}{{\normalfont\textsf{R}}{}}
 \renewcommand{\vec}{\mathrm{vec}}
