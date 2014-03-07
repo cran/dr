@@ -1,0 +1,7 @@
+
+Changes to Version 3.0.8
+
+    o moved vignettes to agree with new standards
+
+    o Corrected bug with na.option in 'dr'
+

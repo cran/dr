@@ -26,6 +26,7 @@ dr <-
 function(formula, data, subset, group=NULL, na.action=na.fail, weights,...)
 {      
     mf <- match.call(expand.dots=FALSE)
+    mf$na.action <- na.action
     if(!is.null(mf$group)) {
      mf$group <- eval(parse(text=as.character(group)[2]), 
                      data,environment(group)) }
@@ -547,22 +548,32 @@ plot.dr <- function
 
 
 markby <-
-function(z,use="color",values=NULL,color.fn=rainbow,na.action="na.use") {
- u <- unique(z)
- lu <- length(u)
- ans <- 0
- vals <- if (use == "color") 
-      {if (!is.null(values) && length(values) == lu)
-                values else color.fn(lu)}
-   else
-      {if (!is.null(values) && length(values) == lu)
-                   values else 1:lu}
- for (j in 1:lu)
-      if (is.na(u[j])) 
-         {ans[which(is.na(z))] <- 
-         if(na.action=="na.use") vals[j] else NA} else
-         {ans[z==u[j]] <- vals[j]}
- ans}
+function (z, use = "color", values = NULL, color.fn = rainbow,
+    na.action = "na.use")
+{
+    u <- unique(z)
+    lu <- length(u)
+    ans <- 0
+    vals <- if (use == "color") {
+        if (!is.null(values) && length(values) == lu)
+            values
+        else color.fn(lu)
+    }
+    else {
+        if (!is.null(values) && length(values) == lu)
+            values
+        else 1:lu
+    }
+    for (j in 1:lu) if (is.na(u[j])) {
+        ans[which(is.na(z))] <- if (na.action == "na.use")
+            vals[j]
+        else NA
+    }
+    else {
+        ans[z == u[j]] <- vals[j]
+    }
+    ans
+}
    
 
 ###################################################################
@@ -1299,7 +1310,7 @@ dr.iteration.ire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
    if (d == 0){ 
      err <- n*sum(forwardsolve(t(Gz),as.vector(zeta))^2)
      data.frame(Test=err,df=(p-d)*(h1-d),
-               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=0)} else {
+               p.value=pchisq(err,(p-d)*(h1-d),lower.tail=FALSE),iter=0)} else {
    T <- if(is.null(T)) diag(rep(1,p)) else T
    B <- if(is.null(B)) diag(rep(1,ncol(T)))[,1:d,drop=FALSE] else B
    fn <- function(B,C){ 
@@ -1334,7 +1345,7 @@ dr.iteration.ire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
      B <- T %*% B
      rownames(B) <- rownames(zeta)
      list(B=B,summary=data.frame(Test=err,df=(p-d)*(h1-d),
-               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=iter))
+               p.value=pchisq(err,(p-d)*(h1-d),lower.tail=FALSE),iter=iter))
      }}
 
 # Equation (12), p. 415 of Cook and Ni (2004) for d=NULL
@@ -1358,13 +1369,13 @@ dr.coordinate.test.ire<-function(object,hypothesis,d=NULL,...){
     m1 <- chol(t(m1) %*% m1)
     T_H <- n * sum (forwardsolve(t(m1),as.vector(t(H)%*%zeta))^2)
     df <- r*(h1)
-    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower=FALSE))
+    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower.tail=FALSE))
     z} 
    else {
     F0 <-if(maxdir >= d) object$result[[d]]$summary$Test else
           dr.iteration(object,object$Gz,d=d,...)$summary$Test
     F1 <- dr.joint.test(object,hypothesis,d=d,...)$summary$Test
-    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower=FALSE))
+    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower.tail=FALSE))
     }}
  
 # Unnumbered equation middle of second column, p. 415 of Cook and Ni (2004)   
@@ -1515,7 +1526,7 @@ dr.iteration.pire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
      for (j in 1:n.groups){
       err <- err + n*sum(forwardsolve(t(Gz[[j]]),as.vector(zeta[[j]]))^2)}
      data.frame(Test=err,df=(p-d)*(h1-d),
-               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=0)} else {
+               p.value=pchisq(err,(p-d)*(h1-d),lower.tail=FALSE),iter=0)} else {
    T <- if(is.null(T)) diag(rep(1,p)) else T
    B <- if(is.null(B)) diag(rep(1,ncol(T)))[,1:d,drop=FALSE] else B
    fn <- function(B,C){ 
@@ -1561,7 +1572,7 @@ dr.iteration.pire <- function(object,Gz,d=2,B=NULL,T=NULL,eps=1.e-6,itmax=200,
      B <- T %*% B
      rownames(B) <- rownames(zeta)
      list(B=B,summary=data.frame(Test=err,df=(p-d)*(h1-d),
-               p.value=pchisq(err,(p-d)*(h1-d),lower=FALSE),iter=iter))
+               p.value=pchisq(err,(p-d)*(h1-d),lower.tail=FALSE),iter=iter))
      }}
      
 dr.coordinate.test.pire<-function(object,hypothesis,d=NULL,...){
@@ -1589,13 +1600,13 @@ dr.coordinate.test.pire<-function(object,hypothesis,d=NULL,...){
       m1 <- chol(t(m1) %*% m1)
      T_H <- T_H + n * sum (forwardsolve(t(m1),as.vector(t(H)%*%zeta[[j]]))^2)}
     df <- r*(h1)
-    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower=FALSE))
+    z <- data.frame(Test=T_H,df=df,p.value=pchisq(T_H,df,lower.tail=FALSE))
     z} 
    else {
     F0 <-if(maxdir >= d) object$result[[d]]$summary$Test else
           dr.iteration(object,object$Gz,d=d,...)$summary$Test
     F1 <- dr.joint.test(object,hypothesis,d=d,...)$summary$Test
-    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower=FALSE))
+    data.frame(Test=F1-F0,df=r*d,p.value=pchisq(F1-F0,r*d,lower.tail=FALSE))
     }}
     
 Gzcomp.pire <- function(object,numdir,span=NULL){
