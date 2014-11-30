@@ -1,6 +1,6 @@
 Package: dr
-Version: 3.0.8
-Date: 2014/03/07
+Version: 3.0.9
+Date: 2014/11/30
 Title: Methods for dimension reduction for regression
 Author: Sanford Weisberg <sandy@umn.edu>,
 Maintainer: Sanford Weisberg <sandy@umn.edu>
@@ -18,7 +18,7 @@ Description: Functions, methods, and datasets for fitting dimension
  the arguments for dr.step have been modified.
 License: GPL (>= 2)
 URL: http://www.r-project.org/prijects/dr
-Packaged: 2014-03-07 14:26:45 UTC; sandy
+Packaged: 2014-11-30 17:24:12 UTC; sandy
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-03-07 16:13:12
+Date/Publication: 2014-11-30 21:52:09
