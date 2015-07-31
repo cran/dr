@@ -1,3 +1,12 @@
+######## July 31, 2015
+importFrom(stats,drop1,contr.helmert,cov,pchisq,update,terms,na.omit,na.fail,pgamma,pbeta)
+importFrom(stats,model.extract,model.matrix,var,residuals,formula,rnorm,as.formula,lm)
+importFrom(graphics,pairs)
+importFrom(grDevices,rainbow)
+S3method(drop1, dr)
+S3method(drop1, psave)
+S3method(drop1, psir)
+
 ################ Aug 22, 2007
 export(dr)
 export(dr.compute)

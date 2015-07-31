@@ -1,3 +1,7 @@
+Changes to Version 3.0.10
+
+    o Corrected NAMESPACE and DESCRIPTION files for R 3.3.0
+
 Changes to Version 3.0.9
 
     o added .sty file needed for the vignette
