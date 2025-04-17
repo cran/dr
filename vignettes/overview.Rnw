@@ -39,6 +39,7 @@
 Minneapolis, MN 55455.}}
 \date{\today}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \maketitle
 
 \begin{abstract}

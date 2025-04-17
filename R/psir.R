@@ -131,7 +131,7 @@ dr.test.psir <- function(object,numdir=object$numdir,...)
   object$test(numdir)
 
 dr.coordinate.test.psir <- function(object,hypothesis,d=NULL,...) {
-    gamma <- if (class(hypothesis) == "formula")
+    gamma <- if (inherits(hypothesis, "formula"))
         coord.hyp.basis(object, hypothesis)
         else as.matrix(hypothesis)
     object$coordinate.test(gamma)

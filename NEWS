@@ -1,3 +1,7 @@
+Changes to Verions 3.0.11
+
+    o Added a base to a link, no funcitonal changes
+
 Changes to Version 3.0.10
 
     o Corrected NAMESPACE and DESCRIPTION files for R 3.3.0

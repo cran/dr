@@ -1,9 +1,11 @@
 Package: dr
-Version: 3.0.10
-Date: 2015-07-31
+Version: 3.0.11
+Date: 2025-04-16
 Title: Methods for Dimension Reduction for Regression
-Author: Sanford Weisberg <sandy@umn.edu>,
-Maintainer: Sanford Weisberg <sandy@umn.edu>
+Authors@R: c(person(given = "Sanford",
+                      family = "Weisberg,",
+                      role = c("aut","cre"),
+                      email = "sandy@umn.edu"))
 Depends: MASS
 Imports: stats,graphics
 LazyData: yes
@@ -18,8 +20,10 @@ Description: Functions, methods, and datasets for fitting dimension
  For documentation, see the vignette in the package.   With version 3.0.4,
  the arguments for dr.step have been modified.
 License: GPL (>= 2)
-URL: https://cran.r-project.org/package=dr
+URL: https://CRAN.R-project.org/package=dr
 NeedsCompilation: no
-Packaged: 2015-08-03 18:59:02 UTC; sandy
+Packaged: 2025-04-16 20:55:47 UTC; sandy
+Author: Sanford Weisberg, [aut, cre]
+Maintainer: "Sanford Weisberg," <sandy@umn.edu>
 Repository: CRAN
-Date/Publication: 2015-08-04 00:25:42
+Date/Publication: 2025-04-17 16:10:02 UTC

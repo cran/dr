@@ -162,8 +162,7 @@ of the American Statistical Association}, 100, 410-428. The
 \code{"ire"} is described in this paper.
 
 Cook, R. D. and Weisberg, S. (1999).  \emph{Applied Regression 
-Including Computing and Graphics}, New York:  Wiley, 
-\url{http://www.stat.umn.edu/arc}.  The program \code{arc} described 
+Including Computing and Graphics}, New York:  Wiley.  The program \code{arc} described 
 in this book also computes most of the dimension reduction methods 
 described here.
 
